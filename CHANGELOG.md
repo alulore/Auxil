@@ -2,7 +2,11 @@
 
 All notable changes to Auxil are documented here.
 
-## Unreleased
+## 0.2.0 - 2026-11-21
+
+### Changed
+
+- The repository moved to `alulore/Auxil`, and packages are published to the alulore GitHub Packages feed.
 
 ### Added
 

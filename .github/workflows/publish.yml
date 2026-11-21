@@ -9,7 +9,7 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  GITHUB_PACKAGES_URL: https://nuget.pkg.github.com/alexpetrou94/index.json
+  GITHUB_PACKAGES_URL: https://nuget.pkg.github.com/alulore/index.json
   PACKAGE_NAME: Auxil
 
 jobs:
@@ -138,9 +138,9 @@ jobs:
 
             try {
               const versions = await github.paginate(
-                github.rest.packages.getAllPackageVersionsForPackageOwnedByUser,
+                github.rest.packages.getAllPackageVersionsForPackageOwnedByOrg,
                 {
-                  username: context.repo.owner,
+                  org: context.repo.owner,
                   package_type: packageType,
                   package_name: packageName,
                   per_page: 100,
@@ -159,8 +159,8 @@ jobs:
 
               for (const version of temporaryVersions) {
                 try {
-                  await github.rest.packages.deletePackageVersionForUser({
-                    username: context.repo.owner,
+                  await github.rest.packages.deletePackageVersionForOrg({
+                    org: context.repo.owner,
                     package_type: packageType,
                     package_name: packageName,
                     package_version_id: version.id,
