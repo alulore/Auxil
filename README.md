@@ -24,7 +24,7 @@ authentication even for public packages. Configure the package source with a
 Personal Access Token (classic) that has the `read:packages` scope:
 
 ```powershell
-dotnet nuget add source "https://nuget.pkg.github.com/alexpetrou94/index.json" `
+dotnet nuget add source "https://nuget.pkg.github.com/alulore/index.json" `
   --name "GitHub-Auxil" `
   --username YOUR_GITHUB_USERNAME `
   --password YOUR_PAT_TOKEN `
@@ -50,4 +50,4 @@ dotnet test Auxil.sln
 
 ## License
 
-[MIT License](https://github.com/alexpetrou94/Auxil/blob/production/LICENSE)
+[MIT License](https://github.com/alulore/Auxil/blob/production/LICENSE)

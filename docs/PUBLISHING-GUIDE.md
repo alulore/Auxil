@@ -1,6 +1,6 @@
 # Publishing Auxil
 
-Auxil is published to GitHub Packages from the `alexpetrou94/Auxil` repository.
+Auxil is published to GitHub Packages from the `alulore/Auxil` repository.
 The workflow builds and tests the solution for pushes to `production` and pull
 requests targeting `production`. A push to `production` also publishes a
 temporary CI package. Version tags publish stable packages.
@@ -34,7 +34,7 @@ temporary CI versions.
 ## Package feed
 
 ```text
-https://nuget.pkg.github.com/alexpetrou94/index.json
+https://nuget.pkg.github.com/alulore/index.json
 ```
 
 Publishing uses the workflow's `GITHUB_TOKEN`. Consumers need a Personal

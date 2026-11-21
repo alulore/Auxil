@@ -17,7 +17,7 @@ dotnet add package Auxil --version 0.1.0 --source GitHub-Auxil
 ## GitHub Packages Source
 
 ```powershell
-dotnet nuget add source "https://nuget.pkg.github.com/alexpetrou94/index.json" `
+dotnet nuget add source "https://nuget.pkg.github.com/alulore/index.json" `
   --name "GitHub-Auxil" `
   --username YOUR_GITHUB_USERNAME `
   --password YOUR_PAT_TOKEN `

@@ -14,7 +14,7 @@
         <Company>UPhoricStudios</Company>
         <Description>A modern .NET utility library: fluent string manipulation, text analysis, result types, semantic versions, async CLI execution, JSON helpers, regex building, fuzzy search, dummy data, and code generation. Built on .NET 10 with C# 14 extension members.</Description>
         <PackageTags>utility;extensions;cli;json;regex;dummy;lorem;fuzzy;semver;text;codegen</PackageTags>
-        <RepositoryUrl>https://github.com/alexpetrou94/Auxil</RepositoryUrl>
+        <RepositoryUrl>https://github.com/alulore/Auxil</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
