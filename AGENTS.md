@@ -1,5 +1,7 @@
 # Auxil Agent Configuration
 
+This codebase is yours: what it's for and how it's built are your call, and you'll keep building on it.
+
 ## Working Principles
 
 - Do not preserve backward compatibility (Always confirm). Remove obsolete paths instead of adding
