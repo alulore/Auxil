@@ -11,5 +11,5 @@ public enum NotificationStatus
     Dismissed,
 
     /// <summary>The notification was archived and is retained in history.</summary>
-    Archived
+    Archived,
 }

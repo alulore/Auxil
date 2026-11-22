@@ -38,6 +38,6 @@ public static class ArrayExtensions
 
     /// <summary>Returns the characters as an array of single-character strings.</summary>
     /// <param name="charArray">The characters to convert.</param>
-    public static string[] ToStringArray(this char[] charArray)
-        => Array.ConvertAll(charArray, c => c.ToString());
+    public static string[] ToStringArray(this char[] charArray) =>
+        Array.ConvertAll(charArray, c => c.ToString());
 }

@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Common;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common;
 
@@ -135,17 +135,5 @@ public class TagsTest
 
         unique.IsStackable.ShouldBeFalse();
         stackable.IsStackable.ShouldBeTrue();
-    }
-
-    [Fact]
-    public void ThrowsOnNullTag()
-    {
-        Tags<string> tags = Tags<string>.Unique();
-
-        Should.Throw<ArgumentNullException>(() => tags.Add(null!));
-        Should.Throw<ArgumentNullException>(() => tags.Consume(null!));
-        Should.Throw<ArgumentNullException>(() => tags.Count(null!));
-        Should.Throw<ArgumentNullException>(() => tags.Remove(null!));
-        Should.Throw<ArgumentNullException>(() => tags.Has(null!));
     }
 }

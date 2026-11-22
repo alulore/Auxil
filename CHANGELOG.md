@@ -2,6 +2,17 @@
 
 All notable changes to Auxil are documented here.
 
+## 0.3.0 - 2026-11-22
+
+### Breaking changes
+
+- `FunctionStatementBuilder<TLanguage>.Async()` is now `AsyncModifier()`.
+- The `DeclarationScope` extension `Async()` is now `AsyncModifier()`.
+- `Auxil.Common.Cli.Cli` is now `CliCommand`.
+- `Auxil.CodeGeneration.Common.Syntax.Shapes.Shapes` is now `SyntaxShapes`; the `Shapes` members on `ILanguage`, `LanguageProfile`, `RenderContext` and `ShapeContext` keep their names and now have the type `SyntaxShapes`.
+- `CliCommand.OutputReceived` and `CliCommand.ErrorOutputReceived` are now `EventHandler<CliOutputEventArgs>` (was `EventHandler<string>`); read the line from `CliOutputEventArgs.Line`.
+- `CliCommand.ExecuteAsync(CancellationToken, TimeSpan?)` is now `ExecuteAsync(TimeSpan? timeout = null, CancellationToken cancellationToken = default)`.
+
 ## 0.2.0 - 2026-11-21
 
 ### Changed

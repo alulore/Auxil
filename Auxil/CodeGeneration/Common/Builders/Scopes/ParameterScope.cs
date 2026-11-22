@@ -7,16 +7,16 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// function, signal).
 /// </summary>
 [PublicAPI]
-public abstract class ParameterScope<TLanguage, TScope, TParent> : DeclarationScope<TLanguage, TScope, TParent>
+public abstract class ParameterScope<TLanguage, TScope, TParent>
+    : DeclarationScope<TLanguage, TScope, TParent>
     where TLanguage : struct, ILanguage
     where TScope : ParameterScope<TLanguage, TScope, TParent>
     where TParent : IScope
 {
     private CodeParameter? _lastParameter;
 
-    internal ParameterScope(CodeBuilder<TLanguage> builder, CodeNode node, TParent parent) : base(builder, node, parent)
-    {
-    }
+    private protected ParameterScope(CodeBuilder<TLanguage> builder, CodeNode node, TParent parent)
+        : base(builder, node, parent) { }
 
     /// <summary>Stores the parameter on the current declaration.</summary>
     protected abstract void AddParameter(CodeParameter parameter);
@@ -27,7 +27,12 @@ public abstract class ParameterScope<TLanguage, TScope, TParent> : DeclarationSc
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
     public TScope Parameter(string name, CodeType? type = null, string? defaultValue = null)
     {
-        CodeParameter parameter = new() { Name = name, Type = type, DefaultValue = defaultValue };
+        CodeParameter parameter = new()
+        {
+            Name = name,
+            Type = type,
+            DefaultValue = defaultValue,
+        };
         _lastParameter = parameter;
         AddParameter(parameter);
         return (TScope)this;

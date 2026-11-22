@@ -27,6 +27,24 @@ internal static class NodeFeatures
     private static readonly Type NestedFunctions = typeof(IHasNestedFunctions);
     private static readonly Type ObjectLiterals = typeof(IHasObjectLiterals);
 
+    private static readonly Dictionary<Type, Type> GatingTraits = new()
+    {
+        [typeof(CodeSignal)] = Signals,
+        [typeof(CodeImport)] = Imports,
+        [typeof(CodeNamespace)] = Namespaces,
+        [typeof(CodeInterface)] = Interfaces,
+        [typeof(CodeFunction)] = TopLevelFunctions,
+        [typeof(CodeTry)] = ExceptionHandling,
+        [typeof(CodeDoWhile)] = DoWhile,
+        [typeof(CodeFor)] = CStyleFor,
+        [typeof(CodeThrow)] = Throw,
+        [typeof(CodeMatch)] = Match,
+        [typeof(CodeConstructor)] = Constructors,
+        [typeof(CodeTypeAlias)] = TypeAliases,
+        [typeof(CodeNestedFunction)] = NestedFunctions,
+        [typeof(CodeObjectLiteral)] = ObjectLiterals,
+    };
+
     /// <summary>Whether the node can render at all in this language (capability check only).</summary>
     public static bool CanRender(RenderContext ctx, CodeNode node, NodeContext context)
     {
@@ -68,7 +86,12 @@ internal static class NodeFeatures
     /// Checks capability and context, then renders the node through the
     /// shared renderer. Returns true when the node was rendered.
     /// </summary>
-    public static bool Render(RenderContext ctx, CodeNode node, NodeContext context, string? className = null)
+    public static bool Render(
+        RenderContext ctx,
+        CodeNode node,
+        NodeContext context,
+        string? className = null
+    )
     {
         Type nodeType = node.GetType();
 
@@ -81,7 +104,9 @@ internal static class NodeFeatures
 
         if (context == NodeContext.InterfaceMember && !IsInterfaceMember(nodeType))
         {
-            ctx.Warnings.Add($"{nodeType.Name} is not supported in a {ctx.LanguageName} interface; skipped.");
+            ctx.Warnings.Add(
+                $"{nodeType.Name} is not supported in a {ctx.LanguageName} interface; skipped."
+            );
             return false;
         }
 
@@ -115,82 +140,12 @@ internal static class NodeFeatures
 
     private static Type? GatingTrait(Type nodeType, NodeContext context)
     {
-        if (nodeType == typeof(CodeSignal))
+        if (nodeType == typeof(CodeClass))
         {
-            return Signals;
+            return context == NodeContext.ClassMember ? InnerClasses : null;
         }
 
-        if (nodeType == typeof(CodeImport))
-        {
-            return Imports;
-        }
-
-        if (nodeType == typeof(CodeNamespace))
-        {
-            return Namespaces;
-        }
-
-        if (nodeType == typeof(CodeInterface))
-        {
-            return Interfaces;
-        }
-
-        if (nodeType == typeof(CodeFunction))
-        {
-            return TopLevelFunctions;
-        }
-
-        if (nodeType == typeof(CodeTry))
-        {
-            return ExceptionHandling;
-        }
-
-        if (nodeType == typeof(CodeDoWhile))
-        {
-            return DoWhile;
-        }
-
-        if (nodeType == typeof(CodeFor))
-        {
-            return CStyleFor;
-        }
-
-        if (nodeType == typeof(CodeThrow))
-        {
-            return Throw;
-        }
-
-        if (nodeType == typeof(CodeMatch))
-        {
-            return Match;
-        }
-
-        if (nodeType == typeof(CodeConstructor))
-        {
-            return Constructors;
-        }
-
-        if (nodeType == typeof(CodeTypeAlias))
-        {
-            return TypeAliases;
-        }
-
-        if (nodeType == typeof(CodeNestedFunction))
-        {
-            return NestedFunctions;
-        }
-
-        if (nodeType == typeof(CodeObjectLiteral))
-        {
-            return ObjectLiterals;
-        }
-
-        if (nodeType == typeof(CodeClass) && context == NodeContext.ClassMember)
-        {
-            return InnerClasses;
-        }
-
-        return null;
+        return GatingTraits.GetValueOrDefault(nodeType);
     }
 
     private static string UnsupportedWarning(RenderContext ctx, Type nodeType, object node)
@@ -240,7 +195,12 @@ internal static class NodeFeatures
             || nodeType == typeof(CodeMethod);
     }
 
-    private static void RenderNode(RenderContext ctx, CodeNode node, NodeContext context, string? className)
+    private static void RenderNode(
+        RenderContext ctx,
+        CodeNode node,
+        NodeContext context,
+        string? className
+    )
     {
         switch (node)
         {
@@ -248,26 +208,10 @@ internal static class NodeFeatures
                 ctx.Writer.WriteComment(comment.Text);
                 break;
             case CodeField field:
-                if (context == NodeContext.InterfaceMember)
-                {
-                    DeclarationRenderer.RenderInterfaceField(ctx, field);
-                }
-                else
-                {
-                    DeclarationRenderer.RenderField(ctx, field, context == NodeContext.FileLevel);
-                }
-
+                RenderFieldNode(ctx, field, context);
                 break;
             case CodeProperty property:
-                if (context == NodeContext.InterfaceMember)
-                {
-                    DeclarationRenderer.RenderInterfaceProperty(ctx, property);
-                }
-                else
-                {
-                    DeclarationRenderer.RenderProperty(ctx, property, context == NodeContext.FileLevel);
-                }
-
+                RenderPropertyNode(ctx, property, context);
                 break;
             case CodeSignal signal:
                 DeclarationRenderer.RenderSignal(ctx, signal);
@@ -282,15 +226,7 @@ internal static class NodeFeatures
                 DeclarationRenderer.RenderInterface(ctx, iface);
                 break;
             case CodeMethod method:
-                if (context == NodeContext.InterfaceMember)
-                {
-                    DeclarationRenderer.RenderInterfaceMethod(ctx, method);
-                }
-                else
-                {
-                    DeclarationRenderer.RenderMethod(ctx, method);
-                }
-
+                RenderMethodNode(ctx, method, context);
                 break;
             case CodeConstructor ctor:
                 DeclarationRenderer.RenderConstructor(ctx, ctor, className ?? string.Empty);
@@ -307,6 +243,46 @@ internal static class NodeFeatures
             case CodeTypeAlias alias:
                 DeclarationRenderer.RenderTypeAlias(ctx, alias);
                 break;
+        }
+    }
+
+    private static void RenderFieldNode(RenderContext ctx, CodeField field, NodeContext context)
+    {
+        if (context == NodeContext.InterfaceMember)
+        {
+            DeclarationRenderer.RenderInterfaceField(ctx, field);
+        }
+        else
+        {
+            DeclarationRenderer.RenderField(ctx, field, context == NodeContext.FileLevel);
+        }
+    }
+
+    private static void RenderPropertyNode(
+        RenderContext ctx,
+        CodeProperty property,
+        NodeContext context
+    )
+    {
+        if (context == NodeContext.InterfaceMember)
+        {
+            DeclarationRenderer.RenderInterfaceProperty(ctx, property);
+        }
+        else
+        {
+            DeclarationRenderer.RenderProperty(ctx, property, context == NodeContext.FileLevel);
+        }
+    }
+
+    private static void RenderMethodNode(RenderContext ctx, CodeMethod method, NodeContext context)
+    {
+        if (context == NodeContext.InterfaceMember)
+        {
+            DeclarationRenderer.RenderInterfaceMethod(ctx, method);
+        }
+        else
+        {
+            DeclarationRenderer.RenderMethod(ctx, method);
         }
     }
 }

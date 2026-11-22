@@ -6,11 +6,13 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// A top-level function scope. Parameters, return type, generics, body.
 /// </summary>
 [PublicAPI]
-public sealed class FunctionScope<TLanguage, TParent> : BodyScope<TLanguage, FunctionScope<TLanguage, TParent>, TParent>
+public sealed class FunctionScope<TLanguage, TParent>
+    : BodyScope<TLanguage, FunctionScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
-    internal FunctionScope(CodeBuilder<TLanguage> builder, CodeFunction function, TParent parent) : base(builder, function, parent)
+    internal FunctionScope(CodeBuilder<TLanguage> builder, CodeFunction function, TParent parent)
+        : base(builder, function, parent)
     {
         FunctionNode = function;
     }

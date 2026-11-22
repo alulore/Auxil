@@ -11,16 +11,16 @@ public class PathSearchTests
     [Fact]
     public void SteppedSearch_MatchesTheOneShotSearch()
     {
-        using var finder = new Pathfinder(new PathMap(20, 20));
+        using Pathfinder finder = new(new PathMap(20, 20));
         finder.Options.Smooth = false;
-        finder.TryFindPath(new PathPoint(0, 0), new PathPoint(19, 19), out PathResult oneShot).ShouldBeTrue();
+        finder
+            .TryFindPath(new PathPoint(0, 0), new PathPoint(19, 19), out PathResult oneShot)
+            .ShouldBeTrue();
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(19, 19));
         search.IsComplete.ShouldBeFalse();
 
-        while (search.Step(1) is null)
-        {
-        }
+        search.RunToCompletion(1);
 
         search.IsComplete.ShouldBeTrue();
         search.Found.ShouldBeTrue();
@@ -33,18 +33,12 @@ public class PathSearchTests
     [Fact]
     public void SmallSteps_ReportRunningUntilTheGoalIsFound()
     {
-        using var finder = new Pathfinder(new PathMap(30, 30));
+        using Pathfinder finder = new(new PathMap(30, 30));
         finder.Options.Smooth = false;
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(29, 29));
 
-        int steps = 0;
-        while (search.Step(10) is null)
-        {
-            steps++;
-            search.IsComplete.ShouldBeFalse();
-            steps.ShouldBeLessThan(10_000);
-        }
+        int steps = search.RunToCompletion(10);
 
         steps.ShouldBeGreaterThan(0);
         search.Found.ShouldBeTrue();
@@ -55,7 +49,7 @@ public class PathSearchTests
     [Fact]
     public void StartEqualsGoal_CompletesImmediately()
     {
-        using var finder = new Pathfinder(new PathMap(5, 5));
+        using Pathfinder finder = new(new PathMap(5, 5));
 
         PathSearch search = finder.BeginSearch(new PathPoint(2, 2), new PathPoint(2, 2));
 
@@ -70,9 +64,9 @@ public class PathSearchTests
     [Fact]
     public void BlockedStart_CompletesWithStartBlocked()
     {
-        var map = new PathMap(5, 5);
+        PathMap map = new(5, 5);
         map.SetBlocked(0, 0);
-        using var finder = new Pathfinder(map);
+        using Pathfinder finder = new(map);
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(4, 4));
 
@@ -84,9 +78,9 @@ public class PathSearchTests
     [Fact]
     public void BlockedGoal_CompletesWithGoalBlocked()
     {
-        var map = new PathMap(5, 5);
+        PathMap map = new(5, 5);
         map.SetBlocked(4, 4);
-        using var finder = new Pathfinder(map);
+        using Pathfinder finder = new(map);
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(4, 4));
 
@@ -97,7 +91,7 @@ public class PathSearchTests
     [Fact]
     public void PointOutsideTheMap_CompletesWithInvalid()
     {
-        using var finder = new Pathfinder(new PathMap(5, 5));
+        using Pathfinder finder = new(new PathMap(5, 5));
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(10, 10));
 
@@ -108,7 +102,7 @@ public class PathSearchTests
     [Fact]
     public void GetResult_BeforeCompletion_Throws()
     {
-        using var finder = new Pathfinder(new PathMap(50, 50));
+        using Pathfinder finder = new(new PathMap(50, 50));
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(49, 49));
         search.Step(1).ShouldBeNull();
@@ -119,21 +113,15 @@ public class PathSearchTests
     [Fact]
     public void SteppedSearch_WorksThroughAMaze()
     {
-        var map = PathMap.FromRows([
-            "..#..",
-            "..#..",
-            "..#..",
-            "..#..",
-            ".....",
-        ]);
-        using var finder = new Pathfinder(map);
+        PathMap map = PathMap.FromRows(["..#..", "..#..", "..#..", "..#..", "....."]);
+        using Pathfinder finder = new(map);
         finder.Options.Smooth = false;
-        finder.TryFindPath(new PathPoint(0, 0), new PathPoint(4, 0), out PathResult oneShot).ShouldBeTrue();
+        finder
+            .TryFindPath(new PathPoint(0, 0), new PathPoint(4, 0), out PathResult oneShot)
+            .ShouldBeTrue();
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(4, 0));
-        while (search.Step(2) is null)
-        {
-        }
+        search.RunToCompletion(2);
 
         PathResult stepped = search.GetResult();
         stepped.Cost.ShouldBe(oneShot.Cost);
@@ -143,19 +131,11 @@ public class PathSearchTests
     [Fact]
     public void NoRoute_CompletesWithNoPath()
     {
-        var map = PathMap.FromRows([
-            "..#..",
-            "..#..",
-            "..#..",
-            "..#..",
-            "..#..",
-        ]);
-        using var finder = new Pathfinder(map);
+        PathMap map = PathMap.FromRows(["..#..", "..#..", "..#..", "..#..", "..#.."]);
+        using Pathfinder finder = new(map);
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(4, 0));
-        while (search.Step(2) is null)
-        {
-        }
+        search.RunToCompletion(2);
 
         search.Found.ShouldBeFalse();
         search.GetResult().Status.ShouldBe(PathStatus.NoPath);
@@ -164,7 +144,7 @@ public class PathSearchTests
     [Fact]
     public void JpsPlus_CompletesOnTheFirstStep()
     {
-        using var finder = new Pathfinder(new PathMap(20, 20), PathfinderAlgorithm.JpsPlus);
+        using Pathfinder finder = new(new PathMap(20, 20), PathfinderAlgorithm.JpsPlus);
         finder.Options.Smooth = false;
 
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(19, 19));
@@ -177,7 +157,7 @@ public class PathSearchTests
     [Fact]
     public void DisposingTheFinder_InvalidatesTheSearch()
     {
-        var finder = new Pathfinder(new PathMap(50, 50));
+        Pathfinder finder = new(new PathMap(50, 50));
         PathSearch search = finder.BeginSearch(new PathPoint(0, 0), new PathPoint(49, 49));
         search.Step(1).ShouldBeNull();
 

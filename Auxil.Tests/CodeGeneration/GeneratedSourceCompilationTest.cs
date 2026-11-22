@@ -13,11 +13,14 @@ public sealed class GeneratedSourceCompilationTest
         code.File("generated.cs")
             .Class("Generated")
             .Method("Run")
-            .Body(body => body
-                .Try(tryBody => tryBody.Throw("new System.InvalidOperationException()"))
-                .Catch("System.InvalidOperationException", "error", catchBody => catchBody.Line("System.Console.WriteLine(error);"))
-                .Catch(catchBody => catchBody.Line("System.Console.WriteLine(\"fallback\");"))
-                .Finally(finallyBody => finallyBody.Line("System.GC.KeepAlive(\"cleanup\");")))
+            .Body(body =>
+                body.Try(tryBody => tryBody.Throw("new System.InvalidOperationException()"))
+                    .Catch("System.InvalidOperationException", "error", catchBody =>
+                        catchBody.Line("System.Console.WriteLine(error);")
+                    )
+                    .Catch(catchBody => catchBody.Line("System.Console.WriteLine(\"fallback\");"))
+                    .Finally(finallyBody => finallyBody.Line("System.GC.KeepAlive(\"cleanup\");"))
+            )
             .EndMethod()
             .EndClass()
             .EndFile();
@@ -25,19 +28,36 @@ public sealed class GeneratedSourceCompilationTest
         string source = code.Render();
         CSharpCompilation compilation = CSharpCompilation.Create(
             "GeneratedSource",
-            [CSharpSyntaxTree.ParseText(source)],
+            [
+                CSharpSyntaxTree.ParseText(
+                    source,
+                    cancellationToken: TestContext.Current.CancellationToken
+                ),
+            ],
             TrustedPlatformReferences(),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
 
         using MemoryStream output = new();
-        EmitResult result = compilation.Emit(output);
+        EmitResult result = compilation.Emit(
+            output,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
-        result.Success.ShouldBeTrue(string.Join(Environment.NewLine, result.Diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)));
+        result.Success.ShouldBeTrue(
+            string.Join(
+                Environment.NewLine,
+                result.Diagnostics.Where(diagnostic =>
+                    diagnostic.Severity == DiagnosticSeverity.Error
+                )
+            )
+        );
     }
 
     private static IEnumerable<MetadataReference> TrustedPlatformReferences()
     {
-        string trustedAssemblies = (string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!;
+        string trustedAssemblies =
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ?? string.Empty;
         return trustedAssemblies
             .Split(Path.PathSeparator)
             .Select(path => MetadataReference.CreateFromFile(path));

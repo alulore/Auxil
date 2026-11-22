@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Common.Text;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Text;
 
@@ -20,10 +20,7 @@ public class FuzzySearchTest
     [Fact]
     public void FindMatches_QueryStrippedToEmptyByIgnoreCharactersDoesNotThrow()
     {
-        FuzzySearchOptions options = new()
-        {
-            IgnoreCharacters = ['a']
-        };
+        FuzzySearchOptions options = new() { IgnoreCharacters = ['a'] };
 
         FuzzySearch fuzzySearch = new(["hello"]);
 
@@ -44,10 +41,7 @@ public class FuzzySearchTest
     [Fact]
     public void FindMatches_RespectsCaseSensitivity()
     {
-        FuzzySearchOptions caseSensitive = new()
-        {
-            CaseInsensitive = false
-        };
+        FuzzySearchOptions caseSensitive = new() { CaseInsensitive = false };
 
         FuzzySearch fuzzySearch = new(["hello", "HELLO"]);
 
@@ -65,10 +59,7 @@ public class FuzzySearchTest
     [Fact]
     public void FindMatches_LimitsResults()
     {
-        FuzzySearchOptions options = new()
-        {
-            MaxResults = 2
-        };
+        FuzzySearchOptions options = new() { MaxResults = 2 };
 
         FuzzySearch fuzzySearch = new(["one", "two", "three", "four"]);
 
@@ -78,10 +69,7 @@ public class FuzzySearchTest
     [Fact]
     public void FindMatches_ZeroMaxResultsReturnsAll()
     {
-        FuzzySearchOptions options = new()
-        {
-            MaxResults = 0
-        };
+        FuzzySearchOptions options = new() { MaxResults = 0 };
 
         FuzzySearch fuzzySearch = new(["one", "two", "three"]);
 
@@ -102,7 +90,7 @@ public class FuzzySearchTest
     {
         FuzzySearch fuzzySearch = new(["hello"]);
 
-        fuzzySearch.FindMatches(null!).ShouldBeEmpty();
+        fuzzySearch.FindMatches(null).ShouldBeEmpty();
     }
 
     [Fact]
@@ -141,25 +129,24 @@ public class FuzzySearchTest
 
         List<FuzzySearchResult> results = fuzzySearch.FindMatches("hello");
 
-        results.Select(result => result.Text).ShouldBe([ "hello", "help", "xyz" ]);
+        results.Select(result => result.Text).ShouldBe(["hello", "help", "xyz"]);
     }
 
     [Fact]
     public void FindMatches_ParallelOptionProducesSameResults()
     {
         List<string> searchList = Enumerable.Range(1, 200).Select(i => $"item{i}").ToList();
-        FuzzySearchOptions parallel = new()
-        {
-            UseParallel = true
-        };
+        FuzzySearchOptions parallel = new() { UseParallel = true };
 
         FuzzySearch fuzzySearch = new(searchList);
 
-        List<string> sequential = fuzzySearch.FindMatches("item1", new FuzzySearchOptions())
+        List<string> sequential = fuzzySearch
+            .FindMatches("item1", new FuzzySearchOptions())
             .Select(result => result.Text)
             .ToList();
 
-        List<string> parallelResults = fuzzySearch.FindMatches("item1", parallel)
+        List<string> parallelResults = fuzzySearch
+            .FindMatches("item1", parallel)
             .Select(result => result.Text)
             .ToList();
 

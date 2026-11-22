@@ -52,7 +52,9 @@ internal static class FileRenderer
 
         if (file.ClassName is not null || file.ExtendsType is not null)
         {
-            ctx.Warnings.Add($"File-as-class (ClassName/Extends) is not supported in {ctx.LanguageName}; skipped.");
+            ctx.Warnings.Add(
+                $"File-as-class (ClassName/Extends) is not supported in {ctx.LanguageName}; skipped."
+            );
         }
 
         List<CodeNode> children = file.Children.Where(c => c is not CodeImport).ToList();
@@ -84,7 +86,8 @@ internal static class FileRenderer
 
         foreach (CodeNode node in nodes)
         {
-            bool related = previous is not null
+            bool related =
+                previous is not null
                 && ctx.Syntax.BlockStyle == BlockStyle.Indentation
                 && IsRelatedDataMember(node, previous);
 

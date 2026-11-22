@@ -9,7 +9,10 @@ namespace Auxil.Common.Notifications;
 public sealed class NotificationCenter
 {
     private readonly Lock _gate = new();
-    private readonly Dictionary<string, Notification> _notifications = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Notification> _notifications =
+    [
+        with(StringComparer.Ordinal),
+    ];
     private readonly List<string> _order = [];
     private readonly TimeProvider _timeProvider;
     private long _nextSequence;
@@ -20,7 +23,7 @@ public sealed class NotificationCenter
     {
         options ??= new NotificationCenterOptions();
 
-        ArgumentNullException.ThrowIfNull(options.TimeProvider);
+        ArgumentNullException.ThrowIfNull(options.TimeProvider, nameof(options));
 
         HistoryLimit = options.HistoryLimit;
         _timeProvider = options.TimeProvider;
@@ -48,10 +51,12 @@ public sealed class NotificationCenter
     }
 
     /// <summary>Gets an immutable snapshot of active notifications in insertion order.</summary>
-    public ImmutableArray<Notification> Active => GetSnapshot(static notification => notification.Status == NotificationStatus.Active);
+    public ImmutableArray<Notification> Active =>
+        GetSnapshot(static notification => notification.Status == NotificationStatus.Active);
 
     /// <summary>Gets an immutable snapshot of dismissed and archived notifications in insertion order.</summary>
-    public ImmutableArray<Notification> History => GetSnapshot(static notification => notification.Status != NotificationStatus.Active);
+    public ImmutableArray<Notification> History =>
+        GetSnapshot(static notification => notification.Status != NotificationStatus.Active);
 
     /// <summary>Gets an immutable snapshot of all retained notifications in insertion order.</summary>
     public ImmutableArray<Notification> All => GetSnapshot(static _ => true);
@@ -73,7 +78,10 @@ public sealed class NotificationCenter
 
             if (_notifications.ContainsKey(id))
             {
-                throw new ArgumentException($"A notification with id '{id}' is already retained.", nameof(notification));
+                throw new ArgumentException(
+                    $"A notification with id '{id}' is already retained.",
+                    nameof(notification)
+                );
             }
 
             DateTimeOffset now = _timeProvider.GetUtcNow();
@@ -106,9 +114,15 @@ public sealed class NotificationCenter
         ArgumentNullException.ThrowIfNull(notification);
         ValidateNotification(notification);
 
-        if (notification.Id is not null && !string.Equals(notification.Id, id, StringComparison.Ordinal))
+        if (
+            notification.Id is not null
+            && !string.Equals(notification.Id, id, StringComparison.Ordinal)
+        )
         {
-            throw new ArgumentException("An update notification identifier must match the notification identifier.", nameof(notification));
+            throw new ArgumentException(
+                "An update notification identifier must match the notification identifier.",
+                nameof(notification)
+            );
         }
 
         NotificationChangedEventArgs change;
@@ -159,7 +173,10 @@ public sealed class NotificationCenter
     /// <param name="id">The notification identifier.</param>
     /// <param name="reason">The reason for dismissal.</param>
     /// <returns><c>true</c> when the notification was dismissed; otherwise <c>false</c>.</returns>
-    public bool Dismiss(string id, NotificationDismissReason reason = NotificationDismissReason.User)
+    public bool Dismiss(
+        string id,
+        NotificationDismissReason reason = NotificationDismissReason.User
+    )
     {
         ValidateId(id);
 
@@ -167,7 +184,10 @@ public sealed class NotificationCenter
 
         lock (_gate)
         {
-            if (!_notifications.TryGetValue(id, out Notification? stored) || stored.Status != NotificationStatus.Active)
+            if (
+                !_notifications.TryGetValue(id, out Notification? stored)
+                || stored.Status != NotificationStatus.Active
+            )
             {
                 return false;
             }
@@ -179,7 +199,9 @@ public sealed class NotificationCenter
                 UpdatedAt = _timeProvider.GetUtcNow(),
             };
             _notifications[id] = dismissed;
-            changes.Add(new NotificationChangedEventArgs(NotificationChangeKind.Dismissed, dismissed));
+            changes.Add(
+                new NotificationChangedEventArgs(NotificationChangeKind.Dismissed, dismissed)
+            );
             TrimHistoryLocked(changes);
         }
 
@@ -198,7 +220,10 @@ public sealed class NotificationCenter
 
         lock (_gate)
         {
-            if (!_notifications.TryGetValue(id, out Notification? stored) || stored.Status == NotificationStatus.Archived)
+            if (
+                !_notifications.TryGetValue(id, out Notification? stored)
+                || stored.Status == NotificationStatus.Archived
+            )
             {
                 return false;
             }
@@ -210,7 +235,9 @@ public sealed class NotificationCenter
                 UpdatedAt = _timeProvider.GetUtcNow(),
             };
             _notifications[id] = archived;
-            changes.Add(new NotificationChangedEventArgs(NotificationChangeKind.Archived, archived));
+            changes.Add(
+                new NotificationChangedEventArgs(NotificationChangeKind.Archived, archived)
+            );
             TrimHistoryLocked(changes);
         }
 
@@ -252,14 +279,19 @@ public sealed class NotificationCenter
         {
             foreach (string id in _order.ToArray())
             {
-                if (!_notifications.TryGetValue(id, out Notification? stored) || stored.Status == NotificationStatus.Active)
+                if (
+                    !_notifications.TryGetValue(id, out Notification? stored)
+                    || stored.Status == NotificationStatus.Active
+                )
                 {
                     continue;
                 }
 
                 _notifications.Remove(id);
                 _order.Remove(id);
-                changes.Add(new NotificationChangedEventArgs(NotificationChangeKind.Removed, stored));
+                changes.Add(
+                    new NotificationChangedEventArgs(NotificationChangeKind.Removed, stored)
+                );
             }
         }
 
@@ -279,10 +311,12 @@ public sealed class NotificationCenter
         {
             foreach (string id in _order.ToArray())
             {
-                if (!_notifications.TryGetValue(id, out Notification? stored) ||
-                    stored.Status != NotificationStatus.Active ||
-                    stored.ExpiresAt is not { } expiresAt ||
-                    expiresAt > expirationTime)
+                if (
+                    !_notifications.TryGetValue(id, out Notification? stored)
+                    || stored.Status != NotificationStatus.Active
+                    || stored.ExpiresAt is not { } expiresAt
+                    || expiresAt > expirationTime
+                )
                 {
                     continue;
                 }
@@ -294,7 +328,9 @@ public sealed class NotificationCenter
                     UpdatedAt = expirationTime,
                 };
                 _notifications[id] = expired;
-                changes.Add(new NotificationChangedEventArgs(NotificationChangeKind.Dismissed, expired));
+                changes.Add(
+                    new NotificationChangedEventArgs(NotificationChangeKind.Dismissed, expired)
+                );
             }
 
             TrimHistoryLocked(changes);
@@ -323,7 +359,8 @@ public sealed class NotificationCenter
             }
 
             NotificationAction? action = notification.Actions.FirstOrDefault(candidate =>
-                string.Equals(candidate.Id, actionId, StringComparison.Ordinal));
+                string.Equals(candidate.Id, actionId, StringComparison.Ordinal)
+            );
             if (action is null)
             {
                 return false;
@@ -365,7 +402,10 @@ public sealed class NotificationCenter
 
         lock (_gate)
         {
-            if (!_notifications.TryGetValue(id, out Notification? stored) || stored.IsRead == isRead)
+            if (
+                !_notifications.TryGetValue(id, out Notification? stored)
+                || stored.IsRead == isRead
+            )
             {
                 return false;
             }
@@ -376,7 +416,10 @@ public sealed class NotificationCenter
                 UpdatedAt = _timeProvider.GetUtcNow(),
             };
             _notifications[id] = updated;
-            change = new NotificationChangedEventArgs(NotificationChangeKind.ReadStateChanged, updated);
+            change = new NotificationChangedEventArgs(
+                NotificationChangeKind.ReadStateChanged,
+                updated
+            );
         }
 
         NotificationChanged?.Invoke(this, change);
@@ -387,7 +430,8 @@ public sealed class NotificationCenter
     {
         lock (_gate)
         {
-            ImmutableArray<Notification>.Builder snapshots = ImmutableArray.CreateBuilder<Notification>();
+            ImmutableArray<Notification>.Builder snapshots =
+                ImmutableArray.CreateBuilder<Notification>();
 
             foreach (string id in _order)
             {
@@ -408,8 +452,7 @@ public sealed class NotificationCenter
         do
         {
             id = Guid.NewGuid().ToString("N");
-        }
-        while (_notifications.ContainsKey(id));
+        } while (_notifications.ContainsKey(id));
 
         return id;
     }
@@ -421,7 +464,10 @@ public sealed class NotificationCenter
             return;
         }
 
-        uint historyCount = (uint)_notifications.Values.Count(static notification => notification.Status != NotificationStatus.Active);
+        uint historyCount = (uint)
+            _notifications.Values.Count(static notification =>
+                notification.Status != NotificationStatus.Active
+            );
 
         while (historyCount > HistoryLimit)
         {
@@ -437,7 +483,10 @@ public sealed class NotificationCenter
                 break;
             }
 
-            if (oldestHistoryId is null || !_notifications.Remove(oldestHistoryId, out Notification? removed))
+            if (
+                oldestHistoryId is null
+                || !_notifications.Remove(oldestHistoryId, out Notification? removed)
+            )
             {
                 break;
             }
@@ -465,30 +514,49 @@ public sealed class NotificationCenter
             ValidateId(notification.Id);
         }
 
-        HashSet<string> actionIds = new(StringComparer.Ordinal);
+        ValidateActions(notification);
+        ValidateTags(notification);
+        ValidateMetadata(notification);
+    }
+
+    private static void ValidateActions(Notification notification)
+    {
+        HashSet<string> actionIds = [with(StringComparer.Ordinal)];
         foreach (NotificationAction action in notification.Actions)
         {
-            ArgumentNullException.ThrowIfNull(action);
+            ArgumentNullException.ThrowIfNull(action, nameof(notification));
             if (!actionIds.Add(action.Id))
             {
-                throw new ArgumentException($"Duplicate notification action id '{action.Id}'.", nameof(notification));
+                throw new ArgumentException(
+                    $"Duplicate notification action id '{action.Id}'.",
+                    nameof(notification)
+                );
             }
         }
+    }
 
-        HashSet<string> tags = new(StringComparer.Ordinal);
+    private static void ValidateTags(Notification notification)
+    {
+        HashSet<string> tags = [with(StringComparer.Ordinal)];
         foreach (string tag in notification.Tags)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(tag);
+            ArgumentException.ThrowIfNullOrWhiteSpace(tag, nameof(notification));
             if (!tags.Add(tag))
             {
-                throw new ArgumentException($"Duplicate notification tag '{tag}'.", nameof(notification));
+                throw new ArgumentException(
+                    $"Duplicate notification tag '{tag}'.",
+                    nameof(notification)
+                );
             }
         }
+    }
 
+    private static void ValidateMetadata(Notification notification)
+    {
         foreach ((string key, string value) in notification.Metadata)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(key);
-            ArgumentNullException.ThrowIfNull(value);
+            ArgumentException.ThrowIfNullOrWhiteSpace(key, nameof(notification));
+            ArgumentNullException.ThrowIfNull(value, nameof(notification));
         }
     }
 
@@ -502,7 +570,9 @@ public sealed class NotificationCenter
         };
     }
 
-    private static ImmutableArray<NotificationAction> CopyActions(ImmutableArray<NotificationAction> actions)
+    private static ImmutableArray<NotificationAction> CopyActions(
+        ImmutableArray<NotificationAction> actions
+    )
     {
         return actions.IsDefaultOrEmpty ? [] : [.. actions];
     }
@@ -512,14 +582,19 @@ public sealed class NotificationCenter
         return tags.IsDefaultOrEmpty ? [] : [.. tags];
     }
 
-    private static ImmutableDictionary<string, string> CopyMetadata(ImmutableDictionary<string, string> metadata)
+    private static ImmutableDictionary<string, string> CopyMetadata(
+        ImmutableDictionary<string, string> metadata
+    )
     {
         if (metadata.IsEmpty)
         {
-            return ImmutableDictionary<string, string>.Empty;
+            return [];
         }
 
-        ImmutableDictionary<string, string>.Builder copy = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+        ImmutableDictionary<string, string>.Builder copy = ImmutableDictionary.CreateBuilder<
+            string,
+            string
+        >(StringComparer.Ordinal);
         foreach ((string key, string value) in metadata)
         {
             copy.Add(key, value);

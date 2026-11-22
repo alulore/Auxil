@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 

@@ -1,6 +1,6 @@
 using System.Collections;
-using JetBrains.Annotations;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
@@ -122,7 +122,7 @@ public class ListExtensionsTest
     [Fact]
     public void IsEmpty_WorksForDictionaries()
     {
-        Dictionary<string, int> dictionary = new();
+        Dictionary<string, int> dictionary = [];
 
         dictionary.IsEmpty.ShouldBeTrue();
         dictionary["a"] = 1;
@@ -152,7 +152,6 @@ public class ListExtensionsTest
     [Fact]
     public void PrintContents_EmptyList()
     {
-        // ReSharper disable once CollectionNeverUpdated.Local
         List<int> list = [];
 
         list.PrintContents().ShouldBe("[ ]");
@@ -185,11 +184,7 @@ public class ListExtensionsTest
     [Fact]
     public void PrintContents_NestedList()
     {
-        List<object> list =
-        [
-            new List<int> { 1, 2 },
-            3
-        ];
+        List<object> list = [new List<int> { 1, 2 }, 3];
 
         list.PrintContents().ShouldBe("[[1, 2], 3]");
     }
@@ -205,8 +200,7 @@ public class ListExtensionsTest
     [Fact]
     public void PrintContents_EmptyDictionary()
     {
-        // ReSharper disable once CollectionNeverUpdated.Local
-        Dictionary<string, int> dictionary = new();
+        Dictionary<string, int> dictionary = [];
 
         dictionary.PrintContents().ShouldBe("{ }");
     }
@@ -214,11 +208,7 @@ public class ListExtensionsTest
     [Fact]
     public void PrintContents_DictionaryHorizontal()
     {
-        Dictionary<string, int> dictionary = new()
-        {
-            ["a"] = 1,
-            ["b"] = 2
-        };
+        Dictionary<string, int> dictionary = new() { ["a"] = 1, ["b"] = 2 };
 
         dictionary.PrintContents().ShouldBe("{ a: 1, b: 2 }");
     }
@@ -226,11 +216,7 @@ public class ListExtensionsTest
     [Fact]
     public void PrintContents_DictionaryVertical()
     {
-        Dictionary<string, int> dictionary = new()
-        {
-            ["a"] = 1,
-            ["b"] = 2
-        };
+        Dictionary<string, int> dictionary = new() { ["a"] = 1, ["b"] = 2 };
 
         dictionary.PrintContents(verticalPrint: true).ShouldBe("{\n  a: 1,\n  b: 2\n}");
     }
@@ -240,7 +226,7 @@ public class ListExtensionsTest
     {
         Dictionary<string, object> dictionary = new()
         {
-            ["a"] = new List<int> { 1, 2 }
+            ["a"] = new List<int> { 1, 2 },
         };
 
         dictionary.PrintContents().ShouldBe("{ a: [1, 2] }");
@@ -249,10 +235,7 @@ public class ListExtensionsTest
     [Fact]
     public void PrintContents_ListWithDictionaryItem()
     {
-        List<object> list =
-        [
-            new Dictionary<string, int> { ["a"] = 1 }
-        ];
+        List<object> list = [new Dictionary<string, int> { ["a"] = 1 }];
 
         list.PrintContents().ShouldBe("[ { a: 1 } ]");
     }
@@ -262,18 +245,12 @@ public class ListExtensionsTest
     {
         Dictionary<string, object> dictionary = new()
         {
-            ["outer"] = new List<int> { 1, 2 }
+            ["outer"] = new List<int> { 1, 2 },
         };
 
-        dictionary.PrintContents(verticalPrint: true).ShouldBe("{\n  outer: [\n    1,\n    2\n  ]\n}");
-    }
-
-    [Fact]
-    public void PrintContents_ThrowsOnNull()
-    {
-        IEnumerable? collection = null;
-
-        Should.Throw<ArgumentNullException>(() => collection!.PrintContents());
+        dictionary
+            .PrintContents(verticalPrint: true)
+            .ShouldBe("{\n  outer: [\n    1,\n    2\n  ]\n}");
     }
 
     [Fact]
@@ -351,10 +328,10 @@ public class ListExtensionsTest
     {
         List<int> list = [1, 2, 3];
 
-        for (int i = 0; i < 100; i++)
-        {
-            list.RandomItem().ShouldBeOneOf(1, 2, 3);
-        }
+        Enumerable
+            .Range(0, 100)
+            .Select(_ => list.RandomItem())
+            .ShouldAllBe(item => list.Contains(item));
     }
 
     [Fact]
@@ -371,14 +348,6 @@ public class ListExtensionsTest
         List<int> list = [];
 
         Should.Throw<InvalidOperationException>(() => list.RandomItem());
-    }
-
-    [Fact]
-    public void RandomItem_ThrowsOnNull()
-    {
-        List<int>? list = null;
-
-        Should.Throw<ArgumentNullException>(() => list!.RandomItem());
     }
 
     [Theory]

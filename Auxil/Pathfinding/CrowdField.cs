@@ -26,13 +26,13 @@ public sealed class CrowdField : IDisposable
 {
     private readonly IPathWorld _world;
     private readonly FlowField _field;
-    private readonly List<int> _idBuffer = new(256);
+    private readonly List<int> _idBuffer = [with(256)];
     private bool _disposed;
 
     /// <summary>Creates a field over a single map. No goal is set yet.</summary>
     /// <param name="map">The map agents walk on.</param>
     public CrowdField(PathMap map)
-        : this(WorldOf(map))
+        : this(IPathWorld.Require(map, nameof(map)))
     {
         Map = map;
     }
@@ -40,7 +40,7 @@ public sealed class CrowdField : IDisposable
     /// <summary>Creates a field over a stack of maps. No goal is set yet.</summary>
     /// <param name="stack">The stacked maps agents walk on.</param>
     public CrowdField(PathMapStack stack)
-        : this(WorldOf(stack))
+        : this(IPathWorld.Require(stack, nameof(stack)))
     {
         Stack = stack;
     }
@@ -78,12 +78,16 @@ public sealed class CrowdField : IDisposable
         {
             throw new ArgumentOutOfRangeException(
                 nameof(goal),
-                $"({goal.X}, {goal.Y}, layer {goal.Layer}) is outside the {_world.Width}x{_world.Height} map.");
+                $"({goal.X}, {goal.Y}, layer {goal.Layer}) is outside the {_world.Width}x{_world.Height} map."
+            );
         }
 
         if (_world.IsBlocked(goal))
         {
-            throw new ArgumentException("The goal tile is blocked; pick a walkable tile.", nameof(goal));
+            throw new ArgumentException(
+                "The goal tile is blocked; pick a walkable tile.",
+                nameof(goal)
+            );
         }
 
         _field.ComputeField(_world.ToIndex(goal));
@@ -106,7 +110,8 @@ public sealed class CrowdField : IDisposable
         {
             throw new ArgumentOutOfRangeException(
                 nameof(point),
-                $"({point.X}, {point.Y}, layer {point.Layer}) is outside the {_world.Width}x{_world.Height} map.");
+                $"({point.X}, {point.Y}, layer {point.Layer}) is outside the {_world.Width}x{_world.Height} map."
+            );
         }
 
         return _field.DistanceAt(_world.ToIndex(point));
@@ -171,44 +176,42 @@ public sealed class CrowdField : IDisposable
             return true;
         }
 
-        Grid grid = _world.Grid;
-        _idBuffer.Clear();
-        _idBuffer.Add(currentId);
-        int cost = 0;
-        int stepGuard = 4 * grid.Size + 16;
-
-        while (true)
+        if (!TryWalkToGoal(currentId, goalId, out int cost))
         {
-            if (!_field.TryGetNextCell(currentId, out int nextId))
-            {
-                result = PathResult.Failure(PathStatus.NoPath, Goal);
-                return false;
-            }
-
-            int direction = grid.DirectionBetween(currentId, nextId);
-            cost += Grid.MoveCost[direction];
-            _idBuffer.Add(nextId);
-            currentId = nextId;
-
-            if (currentId == goalId)
-            {
-                break;
-            }
-
-            if (_idBuffer.Count > stepGuard)
-            {
-                result = PathResult.Failure(PathStatus.NoPath, Goal);
-                return false;
-            }
+            result = PathResult.Failure(PathStatus.NoPath, Goal);
+            return false;
         }
 
-        var points = new PathPoint[_idBuffer.Count];
+        PathPoint[] points = new PathPoint[_idBuffer.Count];
         for (int i = 0; i < points.Length; i++)
         {
             points[i] = _world.ToPoint(_idBuffer[i]);
         }
 
         result = PathResult.Success(Goal, points, cost, 0);
+        return true;
+    }
+
+    private bool TryWalkToGoal(int currentId, int goalId, out int cost)
+    {
+        Grid grid = _world.Grid;
+        _idBuffer.Clear();
+        _idBuffer.Add(currentId);
+        cost = 0;
+        int stepGuard = 4 * grid.Size + 16;
+
+        while (currentId != goalId)
+        {
+            if (_idBuffer.Count > stepGuard || !_field.TryGetNextCell(currentId, out int nextId))
+            {
+                return false;
+            }
+
+            cost += Grid.MoveCost[grid.DirectionBetween(currentId, nextId)];
+            _idBuffer.Add(nextId);
+            currentId = nextId;
+        }
+
         return true;
     }
 
@@ -230,17 +233,5 @@ public sealed class CrowdField : IDisposable
         {
             throw new InvalidOperationException("Call SetGoal before using the field.");
         }
-    }
-
-    private static IPathWorld WorldOf(PathMap map)
-    {
-        ArgumentNullException.ThrowIfNull(map);
-        return map;
-    }
-
-    private static IPathWorld WorldOf(PathMapStack stack)
-    {
-        ArgumentNullException.ThrowIfNull(stack);
-        return stack;
     }
 }

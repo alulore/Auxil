@@ -1,7 +1,7 @@
 using System.Text;
-using JetBrains.Annotations;
 using Auxil.Common.Text;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
@@ -40,14 +40,6 @@ public class StringBuilderExtensionsTest
         StringBuilder sb = new();
 
         sb.PeekBack().ShouldBe(string.Empty);
-    }
-
-    [Fact]
-    public void PeekBack_ThrowsOnNull()
-    {
-        StringBuilder? sb = null;
-
-        Should.Throw<ArgumentNullException>(() => sb!.PeekBack());
     }
 
     [Fact]

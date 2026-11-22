@@ -13,5 +13,5 @@ public enum GenericStyle
     WhereClauses,
 
     /// <summary>The language has no generics.</summary>
-    None
+    None,
 }

@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Auxil.Extensions;
@@ -21,14 +23,14 @@ public static class ListExtensions
     /// <summary>Joins the values with the given separator.</summary>
     /// <param name="values">The values to join.</param>
     /// <param name="separator">The separator between values.</param>
-    public static string Join(this IEnumerable<string> values, string separator = " ")
-        => string.Join(separator, values);
+    public static string Join(this IEnumerable<string> values, string separator = " ") =>
+        string.Join(separator, values);
 
     /// <summary>Joins the values with the given separator character.</summary>
     /// <param name="values">The values to join.</param>
     /// <param name="separator">The separator character.</param>
-    public static string Join(this IEnumerable<string> values, char separator)
-        => string.Join(separator.ToString(), values);
+    public static string Join(this IEnumerable<string> values, char separator) =>
+        string.Join(separator.ToString(), values);
 
     /// <summary>Whether the index is within the list bounds.</summary>
     /// <param name="list">The list to inspect.</param>
@@ -57,14 +59,18 @@ public static class ListExtensions
     /// <summary>Renders the collection as a readable string, one item per line when requested.</summary>
     /// <param name="collection">The collection to render.</param>
     /// <param name="verticalPrint">Whether items are laid out vertically with indentation.</param>
-    public static string PrintContents(this IEnumerable collection, bool verticalPrint = false)
-        => collection.PrintContents(2, verticalPrint);
+    public static string PrintContents(this IEnumerable collection, bool verticalPrint = false) =>
+        collection.PrintContents(2, verticalPrint);
 
     /// <summary>Renders the collection as a readable string with the given indentation.</summary>
     /// <param name="collection">The collection to render.</param>
     /// <param name="indent">The indentation width used for nested collections.</param>
     /// <param name="verticalPrint">Whether items are laid out vertically with indentation.</param>
-    public static string PrintContents(this IEnumerable collection, int indent, bool verticalPrint = false)
+    public static string PrintContents(
+        this IEnumerable collection,
+        int indent,
+        bool verticalPrint = false
+    )
     {
         ArgumentNullException.ThrowIfNull(collection);
 
@@ -83,8 +89,8 @@ public static class ListExtensions
 
     /// <summary>Whether the collection is <c>null</c> or contains no elements.</summary>
     /// <param name="collection">The collection to check.</param>
-    public static bool IsNullOrEmpty<T>(this ICollection<T>? collection)
-        => collection is null || collection.Count == 0;
+    public static bool IsNullOrEmpty<T>(this ICollection<T>? collection) =>
+        collection is null || collection.Count == 0;
 
     /// <summary>Removes the element at the index when it is in bounds; otherwise does nothing.</summary>
     /// <param name="list">The list to modify.</param>
@@ -158,7 +164,7 @@ public static class ListExtensions
             throw new InvalidOperationException("Sequence contains no elements");
         }
 
-        return list[Random.Shared.Next(list.Count)];
+        return list[RandomNumberGenerator.GetInt32(list.Count)];
     }
 
     extension(ICollection collection)
@@ -243,9 +249,8 @@ public static class ListExtensions
 
         if (verticalPrint)
         {
-            sb.Append($"\n{" ".Repeat(Math.Max(0, indent - 2))}}}");
+            sb.Append(CultureInfo.InvariantCulture, $"\n{" ".Repeat(Math.Max(0, indent - 2))}}}");
         }
-
         else
         {
             sb.Append(" }");
@@ -260,9 +265,10 @@ public static class ListExtensions
 
         return item switch
         {
+            null => "NULL",
             IDictionary dictionary => PrintDictionary(dictionary, nestedIndentText, verticalPrint),
             IList list => PrintList(list, nestedIndentText, verticalPrint),
-            _ => item?.ToString() ?? "NULL"
+            _ => item.ToString() ?? "NULL",
         };
     }
 }

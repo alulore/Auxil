@@ -79,7 +79,7 @@ public static class DeclarationScopeFeatures
         where TParent : IScope
     {
         /// <summary>Adds the async modifier.</summary>
-        public TScope Async() => scope.AddModifier(CodeModifier.Async);
+        public TScope AsyncModifier() => scope.AddModifier(CodeModifier.Async);
     }
 
     extension<TLanguage, TScope, TParent>(DeclarationScope<TLanguage, TScope, TParent> scope)

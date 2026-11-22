@@ -9,7 +9,13 @@ public sealed class PathResult
 {
     private static readonly PathPoint[] NoPoints = [];
 
-    private PathResult(PathStatus status, PathPoint goal, IReadOnlyList<PathPoint> points, int cost, int nodesExpanded)
+    private PathResult(
+        PathStatus status,
+        PathPoint goal,
+        IReadOnlyList<PathPoint> points,
+        int cost,
+        int nodesExpanded
+    )
     {
         Status = status;
         Goal = goal;
@@ -43,8 +49,12 @@ public sealed class PathResult
     public int NodesExpanded { get; }
 
     /// <summary>Creates a successful result.</summary>
-    internal static PathResult Success(PathPoint goal, IReadOnlyList<PathPoint> points, int cost, int nodesExpanded) =>
-        new(PathStatus.Found, goal, points, cost, nodesExpanded);
+    internal static PathResult Success(
+        PathPoint goal,
+        IReadOnlyList<PathPoint> points,
+        int cost,
+        int nodesExpanded
+    ) => new(PathStatus.Found, goal, points, cost, nodesExpanded);
 
     /// <summary>Creates a failed result with the given reason.</summary>
     internal static PathResult Failure(PathStatus status, PathPoint goal, int nodesExpanded = 0) =>

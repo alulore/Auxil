@@ -20,7 +20,11 @@ public static class NamespaceScopeFeatures
         {
             CodeInterface iface = new() { Name = name };
             scope.NamespaceNode.Children.Add(iface);
-            return new InterfaceScope<TLanguage, NamespaceScope<TLanguage, TParent>>(scope.Builder, iface, scope);
+            return new InterfaceScope<TLanguage, NamespaceScope<TLanguage, TParent>>(
+                scope.Builder,
+                iface,
+                scope
+            );
         }
     }
 }

@@ -10,8 +10,11 @@ public readonly record struct VersionNumber(
     uint Minor = 0,
     uint Patch = 0,
     uint Build = 0,
-    VersionDevelopmentStage Stage = VersionDevelopmentStage.None)
-    : IComparable<VersionNumber>, IComparable, IComparisonOperators<VersionNumber, VersionNumber, bool>,
+    VersionDevelopmentStage Stage = VersionDevelopmentStage.None
+)
+    : IComparable<VersionNumber>,
+        IComparable,
+        IComparisonOperators<VersionNumber, VersionNumber, bool>,
         IParsable<VersionNumber>
 {
     /// <summary>Returns a new version with the major component incremented and minor and patch reset.</summary>
@@ -48,8 +51,10 @@ public readonly record struct VersionNumber(
             return patchComparison;
         }
 
-        bool thisIsPrerelease = Stage is >= VersionDevelopmentStage.PreAlpha and <= VersionDevelopmentStage.Rc;
-        bool otherIsPrerelease = other.Stage is >= VersionDevelopmentStage.PreAlpha and <= VersionDevelopmentStage.Rc;
+        bool thisIsPrerelease =
+            Stage is >= VersionDevelopmentStage.PreAlpha and <= VersionDevelopmentStage.Rc;
+        bool otherIsPrerelease =
+            other.Stage is >= VersionDevelopmentStage.PreAlpha and <= VersionDevelopmentStage.Rc;
 
         if (thisIsPrerelease != otherIsPrerelease)
         {
@@ -78,29 +83,36 @@ public readonly record struct VersionNumber(
 
         if (obj is not VersionNumber other)
         {
-            throw new ArgumentException($"Object must be of type {nameof(VersionNumber)}.", nameof(obj));
+            throw new ArgumentException(
+                $"Object must be of type {nameof(VersionNumber)}.",
+                nameof(obj)
+            );
         }
 
         return CompareTo(other);
     }
 
     /// <summary>Whether this version is less than the other.</summary>
-    public static bool operator <(VersionNumber left, VersionNumber right) => left.CompareTo(right) < 0;
+    public static bool operator <(VersionNumber left, VersionNumber right) =>
+        left.CompareTo(right) < 0;
 
     /// <summary>Whether this version is greater than the other.</summary>
-    public static bool operator >(VersionNumber left, VersionNumber right) => left.CompareTo(right) > 0;
+    public static bool operator >(VersionNumber left, VersionNumber right) =>
+        left.CompareTo(right) > 0;
 
     /// <summary>Whether this version is less than or equal to the other.</summary>
-    public static bool operator <=(VersionNumber left, VersionNumber right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(VersionNumber left, VersionNumber right) =>
+        left.CompareTo(right) <= 0;
 
     /// <summary>Whether this version is greater than or equal to the other.</summary>
-    public static bool operator >=(VersionNumber left, VersionNumber right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(VersionNumber left, VersionNumber right) =>
+        left.CompareTo(right) >= 0;
 
     /// <summary>Parses a version string such as <c>1.2.3-beta+5</c>.</summary>
     /// <param name="s">The version string.</param>
     /// <param name="provider">Unused format provider.</param>
-    public static VersionNumber Parse(string s, IFormatProvider? provider)
-        => TryParse(s, provider, out VersionNumber result)
+    public static VersionNumber Parse(string s, IFormatProvider? provider) =>
+        TryParse(s, provider, out VersionNumber result)
             ? result
             : throw new FormatException($"\"{s}\" is not a valid version number.");
 
@@ -120,7 +132,7 @@ public readonly record struct VersionNumber(
         string[] buildParts = s.Split('+', 2);
         uint build = 0;
 
-        if (buildParts.Length == 2 && !uint.TryParse(buildParts[1], NumberStyles.None, CultureInfo.InvariantCulture, out build))
+        if (buildParts.Length == 2 && !TryParseNumber(buildParts[1], out build))
         {
             return false;
         }
@@ -128,12 +140,7 @@ public readonly record struct VersionNumber(
         string[] stageParts = buildParts[0].Split('-', 2);
         string[] numberParts = stageParts[0].Split('.');
 
-        if (numberParts.Length is < 1 or > 3)
-        {
-            return false;
-        }
-
-        if (!uint.TryParse(numberParts[0], NumberStyles.None, CultureInfo.InvariantCulture, out uint major))
+        if (numberParts.Length is < 1 or > 3 || !TryParseNumber(numberParts[0], out uint major))
         {
             return false;
         }
@@ -141,37 +148,42 @@ public readonly record struct VersionNumber(
         uint minor = 0;
         uint patch = 0;
 
-        if (numberParts.Length >= 2 && !uint.TryParse(numberParts[1], NumberStyles.None, CultureInfo.InvariantCulture, out minor))
+        if (numberParts.Length >= 2 && !TryParseNumber(numberParts[1], out minor))
         {
             return false;
         }
 
-        if (numberParts.Length >= 3 && !uint.TryParse(numberParts[2], NumberStyles.None, CultureInfo.InvariantCulture, out patch))
+        if (numberParts.Length >= 3 && !TryParseNumber(numberParts[2], out patch))
         {
             return false;
         }
 
         VersionDevelopmentStage stage = VersionDevelopmentStage.None;
 
-        if (stageParts.Length == 2)
+        if (stageParts.Length == 2 && !TryParseStage(stageParts[1], out stage))
         {
-            stage = stageParts[1] switch
-            {
-                "pre" => VersionDevelopmentStage.PreAlpha,
-                "alpha" => VersionDevelopmentStage.Alpha,
-                "beta" => VersionDevelopmentStage.Beta,
-                "rc" => VersionDevelopmentStage.Rc,
-                _ => VersionDevelopmentStage.None
-            };
-
-            if (stage == VersionDevelopmentStage.None)
-            {
-                return false;
-            }
+            return false;
         }
 
         result = new VersionNumber(major, minor, patch, build, stage);
         return true;
+    }
+
+    private static bool TryParseNumber(string text, out uint value) =>
+        uint.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
+
+    private static bool TryParseStage(string text, out VersionDevelopmentStage stage)
+    {
+        stage = text switch
+        {
+            "pre" => VersionDevelopmentStage.PreAlpha,
+            "alpha" => VersionDevelopmentStage.Alpha,
+            "beta" => VersionDevelopmentStage.Beta,
+            "rc" => VersionDevelopmentStage.Rc,
+            _ => VersionDevelopmentStage.None,
+        };
+
+        return stage != VersionDevelopmentStage.None;
     }
 
     /// <summary>Returns the semver-style representation, e.g. <c>1.2.3-beta+5</c>.</summary>

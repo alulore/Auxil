@@ -82,7 +82,8 @@ public sealed class PathSearch
     /// <summary>
     /// Runs up to <paramref name="maxNodes"/> expansions and reports where the search stands:
     /// null while it is still running, otherwise the final <see cref="PathStatus"/>. Calling it
-    /// again after completion returns the same status.
+    /// again after completion returns the same status. Algorithms without a stepped search run to
+    /// completion on the first step.
     /// </summary>
     /// <param name="maxNodes">Expansion budget for this step; values below 1 are treated as 1.</param>
     public PathStatus? Step(int maxNodes)
@@ -110,7 +111,6 @@ public sealed class PathSearch
             return _complete ? _status : null;
         }
 
-        // Algorithms without stepped search run to completion on the first step.
         bool found = _finder.Engine.FindPath(_startId, _goalId, out int cost, out int expanded);
         _expanded = expanded;
         Complete(found ? PathStatus.Found : PathStatus.NoPath, found ? cost : 0);
@@ -127,7 +127,9 @@ public sealed class PathSearch
 
         if (!_complete)
         {
-            throw new InvalidOperationException("The search is still running; call Step until it returns a status.");
+            throw new InvalidOperationException(
+                "The search is still running; call Step until it returns a status."
+            );
         }
 
         if (_status != PathStatus.Found)

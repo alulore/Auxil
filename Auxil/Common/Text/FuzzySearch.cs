@@ -8,9 +8,7 @@ public class FuzzySearch
     public List<string> SearchList { get; init; } = [];
 
     /// <summary>Creates a fuzzy search over an empty word list.</summary>
-    public FuzzySearch()
-    {
-    }
+    public FuzzySearch() { }
 
     /// <summary>Creates a fuzzy search over the given words.</summary>
     /// <param name="searchList">The words to search.</param>
@@ -25,9 +23,9 @@ public class FuzzySearch
     /// <param name="text">The query text.</param>
     /// <param name="options">Matching options; defaults are used when <c>null</c>.</param>
     /// <returns>The ranked matches, or an empty list for empty or whitespace queries.</returns>
-    public List<FuzzySearchResult> FindMatches(string text, FuzzySearchOptions? options = null)
+    public List<FuzzySearchResult> FindMatches(string? text, FuzzySearchOptions? options = null)
     {
-        if (text.IsNullOrWhiteSpace())
+        if (string.IsNullOrWhiteSpace(text))
         {
             return [];
         }
@@ -36,32 +34,41 @@ public class FuzzySearch
         string processedText = ProcessWord(text, options);
 
         IEnumerable<FuzzySearchResult> scored = options.UseParallel
-            ? SearchList.AsParallel().Select(searchWord => BuildResult(searchWord, processedText, options))
+            ? SearchList
+                .AsParallel()
+                .Select(searchWord => BuildResult(searchWord, processedText, options))
             : SearchList.Select(searchWord => BuildResult(searchWord, processedText, options));
 
-        IEnumerable<FuzzySearchResult> ordered = scored.OrderByDescending(result => result.ScorePercentage);
+        IEnumerable<FuzzySearchResult> ordered = scored.OrderByDescending(result =>
+            result.ScorePercentage
+        );
 
         return options.MaxResults > 0
             ? ordered.Take(options.MaxResults).ToList()
             : ordered.ToList();
     }
 
-    private static FuzzySearchResult BuildResult(string searchWord, string processedText, FuzzySearchOptions options)
+    private static FuzzySearchResult BuildResult(
+        string searchWord,
+        string processedText,
+        FuzzySearchOptions options
+    )
     {
         int score = Score(processedText, ProcessWord(searchWord, options), options);
-        int maxScore = options.WordStartScore + options.WordEndScore + options.LengthScore + searchWord.Length;
+        int maxScore =
+            options.WordStartScore + options.WordEndScore + options.LengthScore + searchWord.Length;
 
         return new FuzzySearchResult
         {
             Score = score,
             Text = searchWord,
-            MaxScore = maxScore
+            MaxScore = maxScore,
         };
     }
 
-    private static string ProcessWord(string text, FuzzySearchOptions options)
-        => options.CaseInsensitive
-            ? text.ToLower().Remove(options.IgnoreCharacters.ToArray())
+    private static string ProcessWord(string text, FuzzySearchOptions options) =>
+        options.CaseInsensitive
+            ? text.ToLowerInvariant().Remove(options.IgnoreCharacters.ToArray())
             : text.Remove(options.IgnoreCharacters.ToArray());
 
     private static int Score(string textToSearch, string searchWord, FuzzySearchOptions options)
@@ -80,7 +87,6 @@ public class FuzzySearch
             score += textToSearch[0] == searchWord[0] ? options.WordStartScore : 0;
             score += textToSearch[^1] == searchWord[^1] ? options.WordEndScore : 0;
         }
-
         else
         {
             int compareLength = Math.Min(2, searchWord.Length);

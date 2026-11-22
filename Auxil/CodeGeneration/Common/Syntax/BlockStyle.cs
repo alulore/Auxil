@@ -11,5 +11,5 @@ public enum BlockStyle
     Braces,
 
     /// <summary>Blocks use significant indentation with a header terminator, e.g. "if x:".</summary>
-    Indentation
+    Indentation,
 }

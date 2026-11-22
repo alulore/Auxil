@@ -13,7 +13,7 @@ public abstract class ScopeBase<TLanguage, TParent> : IScope
 {
     private readonly TParent _parent;
 
-    internal ScopeBase(CodeBuilder<TLanguage> builder, CodeNode node, TParent parent)
+    private protected ScopeBase(CodeBuilder<TLanguage> builder, CodeNode node, TParent parent)
     {
         Builder = builder;
         Node = node;

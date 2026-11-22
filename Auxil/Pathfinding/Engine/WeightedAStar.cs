@@ -77,6 +77,7 @@ internal sealed class WeightedAStar : GridSearchBase
 
     /// <summary>Runs up to the given number of expansions and reports the current state.</summary>
     /// <param name="maxExpansions">Expansion budget for this step; at least one.</param>
+    /// <summary>Runs up to <paramref name="maxExpansions"/> expansions; a stale duplicate popped from the open list does not consume the budget.</summary>
     public SearchStepStatus Step(int maxExpansions)
     {
         if (!_hasActiveSearch)
@@ -105,7 +106,7 @@ internal sealed class WeightedAStar : GridSearchBase
             int currentId = _openList.Pop(out _);
             if (closed[currentId] == generation)
             {
-                expansion--; // stale duplicate; does not consume the budget
+                expansion--;
                 continue;
             }
 
@@ -154,7 +155,8 @@ internal sealed class WeightedAStar : GridSearchBase
                 continue;
             }
 
-            int newCost = currentCost + Grid.MoveCost[direction] + ExtraCostOf(extraCosts, neighborId);
+            int newCost =
+                currentCost + Grid.MoveCost[direction] + ExtraCostOf(extraCosts, neighborId);
             if (costGeneration[neighborId] == generation && newCost >= costToReach[neighborId])
             {
                 continue;
@@ -167,10 +169,16 @@ internal sealed class WeightedAStar : GridSearchBase
             int neighborX = x + Grid.OffX[direction];
             int neighborY = y + Grid.OffY[direction];
             int neighborZ = z + Grid.OffZ[direction];
-            _openList.Push(newCost + Grid.Octile(neighborX - goalX, neighborY - goalY) + 10 * Math.Abs(neighborZ - goalZ), neighborId);
+            _openList.Push(
+                newCost
+                    + Grid.Octile(neighborX - goalX, neighborY - goalY)
+                    + 10 * Math.Abs(neighborZ - goalZ),
+                neighborId
+            );
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int ExtraCostOf(int[]? extraCosts, int cell) => extraCosts is null ? 0 : extraCosts[cell];
+    private static int ExtraCostOf(int[]? extraCosts, int cell) =>
+        extraCosts is null ? 0 : extraCosts[cell];
 }

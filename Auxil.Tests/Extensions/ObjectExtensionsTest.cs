@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
@@ -20,11 +20,7 @@ public class ObjectExtensionsTest
     [Fact]
     public void DeepClone_CopiesNestedObjectsIndependently()
     {
-        Cloneable original = new()
-        {
-            Value = "original",
-            Items = [1, 2]
-        };
+        Cloneable original = new() { Value = "original", Items = [1, 2] };
 
         Cloneable clone = original.DeepClone();
 
@@ -45,11 +41,7 @@ public class ObjectExtensionsTest
     [Fact]
     public void ShallowClone_CopiesValue()
     {
-        Cloneable original = new()
-        {
-            Value = "original",
-            Items = [1, 2]
-        };
+        Cloneable original = new() { Value = "original", Items = [1, 2] };
 
         Cloneable clone = original.ShallowClone();
 

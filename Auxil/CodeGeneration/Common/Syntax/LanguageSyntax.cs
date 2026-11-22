@@ -1,4 +1,3 @@
-
 namespace Auxil.CodeGeneration.Common.Syntax;
 
 /// <summary>
@@ -46,8 +45,6 @@ public sealed class LanguageSyntax
 
     /// <summary>Canonical type name to language-specific type name.</summary>
     public required IReadOnlyDictionary<string, string> TypeMap { get; init; }
-
-    // ---- Declaration keywords ----
 
     /// <summary>The class keyword.</summary>
     public string KeywordClass { get; init; } = "class";
@@ -107,8 +104,6 @@ public sealed class LanguageSyntax
     /// <summary>Whether the language has nullable markers (C# "T?", TypeScript "name?").</summary>
     public bool SupportsNullable { get; init; } = true;
 
-    // ---- Declaration styles ----
-
     /// <summary>How base lists are written.</summary>
     public BaseListStyle BaseListStyle { get; init; } = BaseListStyle.Extends;
 
@@ -126,8 +121,6 @@ public sealed class LanguageSyntax
 
     /// <summary>How imports are written.</summary>
     public ImportStyle ImportStyle { get; init; } = ImportStyle.From;
-
-    // ---- Statement skeletons ----
 
     /// <summary>Whether conditions are parenthesized, e.g. "if (x)" vs GDScript "if x:".</summary>
     public bool ConditionParens { get; init; } = true;

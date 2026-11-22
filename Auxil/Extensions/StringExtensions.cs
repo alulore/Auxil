@@ -16,15 +16,46 @@ public static class StringExtensions
     private static readonly char[] CommonSeparators = [' ', '-', '_'];
     private static readonly List<char> Punctuations =
     [
-        '.', ',', ':', ';', '?', '!', '"', '\'', '(', ')', '[', ']', '{', '}',
-        '-', '_', '/', '\\', '|', '+', '=', '*', '&', '%', '$', '#', '@', '^', '~'
+        '.',
+        ',',
+        ':',
+        ';',
+        '?',
+        '!',
+        '"',
+        '\'',
+        '(',
+        ')',
+        '[',
+        ']',
+        '{',
+        '}',
+        '-',
+        '_',
+        '/',
+        '\\',
+        '|',
+        '+',
+        '=',
+        '*',
+        '&',
+        '%',
+        '$',
+        '#',
+        '@',
+        '^',
+        '~',
     ];
 
     /// <summary>Returns all zero-based indexes where the substring occurs in the text.</summary>
     /// <param name="text">The text to search.</param>
     /// <param name="subString">The substring to find.</param>
     /// <param name="ignoreCase">Whether to match case-insensitively.</param>
-    public static List<int> AllIndexesOf(this string text, string subString, bool ignoreCase = false)
+    public static List<int> AllIndexesOf(
+        this string text,
+        string subString,
+        bool ignoreCase = false
+    )
     {
         List<int> result = [];
 
@@ -50,8 +81,8 @@ public static class StringExtensions
 
     /// <summary>Returns the text with the first character uppercased using the invariant culture.</summary>
     /// <param name="text">The text to capitalize.</param>
-    public static string Capitalize(this string text)
-        => text.IsNullOrEmpty() ? string.Empty : char.ToUpperInvariant(text[0]) + text[1..];
+    public static string Capitalize(this string text) =>
+        text.IsNullOrEmpty() ? string.Empty : char.ToUpperInvariant(text[0]) + text[1..];
 
     /// <summary>Returns the text with the value appended.</summary>
     /// <param name="text">The base text.</param>
@@ -68,9 +99,14 @@ public static class StringExtensions
     /// <param name="startIndex">The index to start scanning at.</param>
     /// <param name="boundaryCharacters">Additional characters that end a word.</param>
     /// <returns>The end boundary index, or <c>-1</c> when the start index is invalid.</returns>
-    public static int GetEndBoundary(this string text, int startIndex, HashSet<char> boundaryCharacters)
+    public static int GetEndBoundary(
+        this string text,
+        int startIndex,
+        HashSet<char> boundaryCharacters
+    )
     {
-        bool isInvalid = startIndex >= text.Length
+        bool isInvalid =
+            startIndex >= text.Length
             || startIndex < 0
             || char.IsWhiteSpace(text[startIndex])
             || boundaryCharacters.Contains(text[startIndex]);
@@ -96,8 +132,8 @@ public static class StringExtensions
     /// <summary>Returns the index just before the first white space at or after the start index.</summary>
     /// <param name="text">The text to scan.</param>
     /// <param name="startIndex">The index to start scanning at.</param>
-    public static int GetEndBoundary(this string text, int startIndex)
-        => text.GetEndBoundary(startIndex, []);
+    public static int GetEndBoundary(this string text, int startIndex) =>
+        text.GetEndBoundary(startIndex, []);
 
     /// <summary>Detects the newline style used in the text.</summary>
     /// <param name="text">The text to inspect.</param>
@@ -129,7 +165,10 @@ public static class StringExtensions
             }
         }
 
-        int distinctTypes = (hasLineFeed ? 1 : 0) + (hasCarriageReturn ? 1 : 0) + (hasCarriageReturnLineFeed ? 1 : 0);
+        int distinctTypes =
+            (hasLineFeed ? 1 : 0)
+            + (hasCarriageReturn ? 1 : 0)
+            + (hasCarriageReturnLineFeed ? 1 : 0);
 
         if (distinctTypes > 1)
         {
@@ -172,17 +211,22 @@ public static class StringExtensions
     /// <summary>Removes all occurrences of the given substring.</summary>
     /// <param name="text">The text to modify.</param>
     /// <param name="textToRemove">The substring to remove.</param>
-    public static string Remove(this string text, string textToRemove)
-        => text.Replace(textToRemove, string.Empty);
+    public static string Remove(this string text, string textToRemove) =>
+        text.Replace(textToRemove, string.Empty, StringComparison.Ordinal);
 
     /// <summary>Returns the index just after the last boundary character at or before the start index.</summary>
     /// <param name="text">The text to scan.</param>
     /// <param name="startIndex">The index to start scanning at.</param>
     /// <param name="boundaryCharacters">Additional characters that end a word.</param>
     /// <returns>The start boundary index, or <c>-1</c> when the start index is invalid.</returns>
-    public static int GetStartBoundary(this string text, int startIndex, HashSet<char> boundaryCharacters)
+    public static int GetStartBoundary(
+        this string text,
+        int startIndex,
+        HashSet<char> boundaryCharacters
+    )
     {
-        bool isInvalid = startIndex >= text.Length
+        bool isInvalid =
+            startIndex >= text.Length
             || startIndex < 0
             || char.IsWhiteSpace(text[startIndex])
             || boundaryCharacters.Contains(text[startIndex]);
@@ -208,21 +252,24 @@ public static class StringExtensions
     /// <summary>Returns the index just after the last white space at or before the start index.</summary>
     /// <param name="text">The text to scan.</param>
     /// <param name="startIndex">The index to start scanning at.</param>
-    public static int GetStartBoundary(this string text, int startIndex)
-        => text.GetStartBoundary(startIndex, []);
+    public static int GetStartBoundary(this string text, int startIndex) =>
+        text.GetStartBoundary(startIndex, []);
 
     /// <summary>Returns the text inside the first pair of curly braces.</summary>
     /// <param name="input">The text to search.</param>
-    public static string GetTextInCurlyBraces(this string input)
-        => Regex.Match(input, BracesRegexPattern).Groups[1].Value;
+    public static string GetTextInCurlyBraces(this string input) =>
+        Regex.Match(input, BracesRegexPattern).Groups[1].Value;
 
     /// <summary>Returns the text inside the first quoted segment, double or single quotes.</summary>
     /// <param name="input">The text to search.</param>
-    public static string GetTextInQuotes(this string input)
-        => Regex.Match(input, QuotesRegexPattern)
+    public static string GetTextInQuotes(this string input) =>
+        Regex
+            .Match(input, QuotesRegexPattern)
             .Groups.Cast<Group>()
             .Skip(1)
-            .FirstOrDefault(g => g.Success)?.Value ?? string.Empty;
+            .FirstOrDefault(g => g.Success)
+            ?.Value
+        ?? string.Empty;
 
     /// <summary>Whether the text consists only of letters and digits.</summary>
     /// <param name="text">The text to check.</param>
@@ -294,21 +341,25 @@ public static class StringExtensions
     /// <param name="text">The text to modify.</param>
     /// <param name="pattern">The regular expression pattern.</param>
     /// <param name="replacement">The replacement text.</param>
-    public static string RegexReplace(this string text, string pattern, string replacement)
-        => Regex.Replace(text, pattern, replacement);
+    public static string RegexReplace(this string text, string pattern, string replacement) =>
+        Regex.Replace(text, pattern, replacement);
 
     /// <summary>Replaces regular expression matches in the text using the given options.</summary>
     /// <param name="text">The text to modify.</param>
     /// <param name="pattern">The regular expression pattern.</param>
     /// <param name="replacement">The replacement text.</param>
     /// <param name="options">The regular expression options.</param>
-    public static string RegexReplace(this string text, string pattern, string replacement, RegexOptions options)
-        => Regex.Replace(text, pattern, replacement, options);
+    public static string RegexReplace(
+        this string text,
+        string pattern,
+        string replacement,
+        RegexOptions options
+    ) => Regex.Replace(text, pattern, replacement, options);
 
     /// <summary>Removes all punctuation and symbol characters from the text.</summary>
     /// <param name="text">The text to modify.</param>
-    public static string RemoveAllPunctuation(this string text)
-        => Regex.Replace(text, RegexLibrary.Punctuation, string.Empty);
+    public static string RemoveAllPunctuation(this string text) =>
+        Regex.Replace(text, RegexLibrary.Punctuation, string.Empty);
 
     /// <summary>Removes diacritical marks (accents) from the text.</summary>
     /// <param name="text">The text to modify.</param>
@@ -334,7 +385,11 @@ public static class StringExtensions
     /// <param name="text">The text to modify.</param>
     /// <param name="count">The number of characters to remove.</param>
     /// <param name="treatNewLineAsSingle">Whether a CRLF pair counts as a single character.</param>
-    public static string RemoveLeft(this string text, int count = 1, bool treatNewLineAsSingle = true)
+    public static string RemoveLeft(
+        this string text,
+        int count = 1,
+        bool treatNewLineAsSingle = true
+    )
     {
         ArgumentNullException.ThrowIfNull(text);
 
@@ -349,11 +404,15 @@ public static class StringExtensions
 
         while (index < span.Length && removed < count)
         {
-            if (treatNewLineAsSingle && span[index] == '\r' && index + 1 < span.Length && span[index + 1] == '\n')
+            if (
+                treatNewLineAsSingle
+                && span[index] == '\r'
+                && index + 1 < span.Length
+                && span[index + 1] == '\n'
+            )
             {
                 index += 2;
             }
-
             else
             {
                 index++;
@@ -369,7 +428,11 @@ public static class StringExtensions
     /// <param name="text">The text to modify.</param>
     /// <param name="count">The number of characters to remove.</param>
     /// <param name="treatNewLineAsSingle">Whether a CRLF pair counts as a single character.</param>
-    public static string RemoveRight(this string text, int count = 1, bool treatNewLineAsSingle = true)
+    public static string RemoveRight(
+        this string text,
+        int count = 1,
+        bool treatNewLineAsSingle = true
+    )
     {
         ArgumentNullException.ThrowIfNull(text);
 
@@ -384,11 +447,15 @@ public static class StringExtensions
 
         while (index > 0 && removed < count)
         {
-            if (treatNewLineAsSingle && span[index - 1] == '\n' && index >= 2 && span[index - 2] == '\r')
+            if (
+                treatNewLineAsSingle
+                && span[index - 1] == '\n'
+                && index >= 2
+                && span[index - 2] == '\r'
+            )
             {
                 index -= 2;
             }
-
             else
             {
                 index--;
@@ -435,14 +502,16 @@ public static class StringExtensions
             IncludeAcronyms = true,
             IncludeNumbers = true,
             RemoveEmptyEntries = true,
-            TrimEntries = true
+            TrimEntries = true,
         };
 
         string[] words = text.ContextualSplit(CommonSeparators, options);
-        string firstWord = words[0].ToLower();
+        string firstWord = words[0].ToLowerInvariant();
 
-        return words[1..].Aggregate(firstWord, (current, word)
-            => $"{current}{word.ToLower().Capitalize()}");
+        return words[1..]
+            .Aggregate(firstWord, (current, word) =>
+                $"{current}{word.ToLowerInvariant().Capitalize()}"
+            );
     }
 
     /// <summary>Returns the lines of the text, optionally dropping empty lines.</summary>
@@ -452,8 +521,10 @@ public static class StringExtensions
     {
         text = text.ReplaceLineEndings(NewLine.LineFeed);
 
-        return text.Split(NewLine.LineFeed,
-                removeEmptyLines ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None)
+        return text.Split(
+                NewLine.LineFeed,
+                removeEmptyLines ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None
+            )
             .ToList();
     }
 
@@ -471,7 +542,11 @@ public static class StringExtensions
     /// <param name="text">The text to parse.</param>
     /// <param name="defaultEnumValue">The value returned when parsing fails.</param>
     /// <param name="ignoreCase">Whether parsing ignores case.</param>
-    public static TEnum ToEnum<TEnum>(this string text, TEnum defaultEnumValue = default, bool ignoreCase = true)
+    public static TEnum ToEnum<TEnum>(
+        this string text,
+        TEnum defaultEnumValue = default,
+        bool ignoreCase = true
+    )
         where TEnum : struct, Enum
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -524,14 +599,16 @@ public static class StringExtensions
             {
                 ArgumentNullException.ThrowIfNull(text);
 
-                List<char> modifiedPunctuations = [..Punctuations];
+                List<char> modifiedPunctuations = [.. Punctuations];
                 modifiedPunctuations.Remove('-');
                 modifiedPunctuations.Remove('\'');
                 modifiedPunctuations.Remove('_');
 
                 return text.Remove(modifiedPunctuations.ToArray())
-                    .Split(Array.Empty<char>(),
-                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Split(
+                        Array.Empty<char>(),
+                        StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries
+                    )
                     .ToList();
             }
         }
@@ -568,8 +645,8 @@ public static class StringExtensions
 
             options ??= new TextOptions();
 
-            List<string> escapedCharacters = options.CharactersToExclude
-                .Select(character => character.ToString().RegexEscape())
+            List<string> escapedCharacters = options
+                .CharactersToExclude.Select(character => character.ToString().RegexEscape())
                 .ToList();
 
             if (options.ExcludeEndLineCharacters)
@@ -591,12 +668,8 @@ public static class StringExtensions
         {
             ArgumentNullException.ThrowIfNull(text);
 
-            string[] paragraphs = text.Split
-            (
-                [
-                    NewLine.CarriageReturnLineFeed.Repeat(2),
-                    NewLine.LineFeed.Repeat(2)
-                ],
+            string[] paragraphs = text.Split(
+                [NewLine.CarriageReturnLineFeed.Repeat(2), NewLine.LineFeed.Repeat(2)],
                 StringSplitOptions.RemoveEmptyEntries
             );
 
@@ -611,8 +684,8 @@ public static class StringExtensions
 
             options ??= new TextOptions();
 
-            const StringSplitOptions splitOptions = StringSplitOptions.RemoveEmptyEntries
-                | StringSplitOptions.TrimEntries;
+            const StringSplitOptions splitOptions =
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 
             char[] sentenceEndings = ['.', '!', '?'];
 
@@ -629,12 +702,13 @@ public static class StringExtensions
 
             for (int i = 0; i < words.Length; i++)
             {
-                if (!sentenceEndings.Any(end => words[i].Contains(end)))
+                if (!sentenceEndings.Any(end => words[i].Contains(end, StringComparison.Ordinal)))
                 {
                     continue;
                 }
 
-                bool isNextWordLower = options.ExcludeLowerCharacterAfterSentenceEnd
+                bool isNextWordLower =
+                    options.ExcludeLowerCharacterAfterSentenceEnd
                     && i + 1 < words.Length
                     && words[i + 1][0].IsLower();
 
@@ -646,7 +720,7 @@ public static class StringExtensions
                 sentenceCount++;
             }
 
-            if (!sentenceEndings.Any(end => words.Last().Contains(end)))
+            if (!sentenceEndings.Any(end => words.Last().Contains(end, StringComparison.Ordinal)))
             {
                 sentenceCount++;
             }
@@ -664,7 +738,7 @@ public static class StringExtensions
 
             return options.CountCaseSensitiveWords
                 ? text.Words.Distinct().Count()
-                : text.ToLower().Words.Distinct().Count();
+                : text.ToLowerInvariant().Words.Distinct().Count();
         }
 
         /// <summary>Counts the words in the text.</summary>
@@ -701,8 +775,8 @@ public static class StringExtensions
 
             options ??= new TextOptions();
 
-            string workingText = options.CountCaseSensitiveWords ? text : text.ToLower();
-            Dictionary<string, int> wordFrequency = new();
+            string workingText = options.CountCaseSensitiveWords ? text : text.ToLowerInvariant();
+            Dictionary<string, int> wordFrequency = [];
 
             foreach (string rawWord in workingText.Words)
             {
@@ -723,8 +797,14 @@ public static class StringExtensions
         {
             ArgumentNullException.ThrowIfNull(options);
 
-            return text.IsBetween(options.TextToFind, options.LeftDelimiter, options.RightDelimiter,
-                options.StartIndex, options.CanBeEscaped, options.EscapeChar);
+            return text.IsBetween(
+                options.TextToFind,
+                options.LeftDelimiter,
+                options.RightDelimiter,
+                options.StartIndex,
+                options.CanBeEscaped,
+                options.EscapeChar
+            );
         }
 
         /// <summary>Whether the text is enclosed between the given delimiters, optionally honoring an escape character.</summary>
@@ -734,8 +814,14 @@ public static class StringExtensions
         /// <param name="startIndex">The index at which to start searching.</param>
         /// <param name="canBeEscaped">Whether a delimiter preceded by the escape character does not count.</param>
         /// <param name="escapeChar">The escape character.</param>
-        public bool IsBetween(string textToFind, char leftDelimiter, char rightDelimiter,
-            int startIndex = 0, bool canBeEscaped = false, char escapeChar = '\0')
+        public bool IsBetween(
+            string textToFind,
+            char leftDelimiter,
+            char rightDelimiter,
+            int startIndex = 0,
+            bool canBeEscaped = false,
+            char escapeChar = '\0'
+        )
         {
             ArgumentNullException.ThrowIfNull(text);
 
@@ -794,6 +880,7 @@ public static class StringExtensions
             return false;
         }
     }
+
     /// <summary>Converts the text to PascalCase.</summary>
     /// <param name="text">The text to convert.</param>
     public static string ToPascalCase(this string text)
@@ -808,13 +895,14 @@ public static class StringExtensions
             IncludeAcronyms = true,
             IncludeNumbers = true,
             RemoveEmptyEntries = true,
-            TrimEntries = true
+            TrimEntries = true,
         };
 
         string[] words = text.ContextualSplit(CommonSeparators, options);
 
-        return words.Aggregate(string.Empty, (current, word)
-            => current + word.ToLower().Capitalize());
+        return words.Aggregate(string.Empty, (current, word) =>
+            current + word.ToLowerInvariant().Capitalize()
+        );
     }
 
     /// <summary>Converts the text to snake_case.</summary>
@@ -831,25 +919,29 @@ public static class StringExtensions
             IncludeAcronyms = true,
             IncludeNumbers = true,
             RemoveEmptyEntries = true,
-            TrimEntries = true
+            TrimEntries = true,
         };
 
         string[] words = text.ContextualSplit(CommonSeparators, options);
 
-        return words.Aggregate((current, word) => $"{current}_{word}".ToLower());
+        return words.Aggregate((current, word) => $"{current}_{word}".ToLowerInvariant());
     }
 
     /// <summary>Splits the text on the given separators using default options.</summary>
     /// <param name="text">The text to split.</param>
     /// <param name="separators">The separator characters; an empty set defaults to space.</param>
-    public static string[] ContextualSplit(this string text, char[] separators)
-        => ContextualSplit(text, separators, new ContextualStringSplitOptions());
+    public static string[] ContextualSplit(this string text, char[] separators) =>
+        ContextualSplit(text, separators, new ContextualStringSplitOptions());
 
     /// <summary>Splits the text on the given separators, optionally splitting acronym and number runs.</summary>
     /// <param name="text">The text to split.</param>
     /// <param name="separators">The separator characters; an empty set defaults to space.</param>
     /// <param name="options">The split options.</param>
-    public static string[] ContextualSplit(this string text, char[] separators, ContextualStringSplitOptions options)
+    public static string[] ContextualSplit(
+        this string text,
+        char[] separators,
+        ContextualStringSplitOptions options
+    )
     {
         if (options is { IncludeAcronyms: false, IncludeNumbers: false })
         {
@@ -866,91 +958,9 @@ public static class StringExtensions
             return text.Split(separators, stringSplitOptions);
         }
 
-        StringBuilder wordBuilder = new();
-        List<string> result = [];
-        separators = separators.IsNullOrEmpty() ? [' '] : separators;
-        bool currentIsDigit = false;
-        bool currentIsAcronym = false;
+        char[] effectiveSeparators = separators.IsNullOrEmpty() ? [' '] : separators;
 
-        foreach (char c in text)
-        {
-            if (separators.Contains(c))
-            {
-                AddWord(wordBuilder.ToString());
-                wordBuilder.Clear();
-                continue;
-            }
-
-            if (options.IncludeNumbers)
-            {
-                if (c.IsDigit())
-                {
-                    if (!wordBuilder.IsEmpty && !currentIsDigit)
-                    {
-                        AddWord(wordBuilder.ToString());
-                        wordBuilder.Clear();
-                    }
-
-                    currentIsDigit = true;
-                    wordBuilder.Append(c);
-                    continue;
-                }
-
-                if (!c.IsDigit() && currentIsDigit)
-                {
-                    AddWord(wordBuilder.ToString());
-                    wordBuilder.Clear();
-                    currentIsDigit = false;
-                }
-            }
-
-            if (options.IncludeAcronyms)
-            {
-                if (c.IsLetter() && c.IsUpper())
-                {
-                    string lastStringChar = wordBuilder.PeekBack();
-                    string secondLastStringChar = wordBuilder.PeekBack(2);
-
-                    bool addWordBeforeAcronyms = !lastStringChar.IsNullOrEmpty()
-                        && !secondLastStringChar.IsNullOrEmpty()
-                        && secondLastStringChar[0].IsLower()
-                        && lastStringChar[0].IsUpper();
-
-                    if (!wordBuilder.IsEmpty && addWordBeforeAcronyms)
-                    {
-                        AddWord(wordBuilder.ToString()[..^1]);
-                        wordBuilder.Clear().Append(lastStringChar[0]).Append(c);
-                        currentIsAcronym = true;
-                        continue;
-                    }
-                }
-
-                if (c.IsLetter() && c.IsLower() && currentIsAcronym)
-                {
-                    AddWord(wordBuilder.ToString());
-                    wordBuilder.Clear();
-                    currentIsAcronym = false;
-                }
-            }
-
-            wordBuilder.Append(c);
-        }
-
-        AddWord(wordBuilder.ToString());
-
-        return result.ToArray();
-
-        void AddWord(string word)
-        {
-            word = options.TrimEntries ? word.Trim() : word;
-
-            if (options.RemoveEmptyEntries && word.IsNullOrEmpty())
-            {
-                return;
-            }
-
-            result.Add(word);
-        }
+        return new ContextualSplitter(effectiveSeparators, options).Split(text);
     }
 
     /// <summary>Returns the longest common subsequence of the two texts.</summary>
@@ -971,7 +981,6 @@ public static class StringExtensions
                 {
                     lengths[i, j] = lengths[i - 1, j - 1] + 1;
                 }
-
                 else
                 {
                     lengths[i, j] = Math.Max(lengths[i - 1, j], lengths[i, j - 1]);
@@ -993,12 +1002,10 @@ public static class StringExtensions
                 indexA--;
                 indexB--;
             }
-
             else if (lengths[indexA - 1, indexB] > lengths[indexA, indexB - 1])
             {
                 indexA--;
             }
-
             else
             {
                 indexB--;
@@ -1020,32 +1027,35 @@ public static class StringExtensions
     /// <summary>Removes the leading prefix when present; otherwise returns the text unchanged.</summary>
     /// <param name="text">The text to modify.</param>
     /// <param name="prefix">The prefix to remove.</param>
-    public static string RemovePrefix(this string text, string prefix)
-        => text.StartsWith(prefix) ? text[prefix.Length..] : text;
+    public static string RemovePrefix(this string text, string prefix) =>
+        text.StartsWith(prefix, StringComparison.Ordinal) ? text[prefix.Length..] : text;
 
     /// <summary>Returns the text wrapped in the same delimiter on both sides.</summary>
     /// <param name="text">The text to wrap.</param>
     /// <param name="startDelimiter">The delimiter used on both sides.</param>
-    public static string SurroundWith(this string text, string startDelimiter)
-        => SurroundWith(text, startDelimiter, startDelimiter);
+    public static string SurroundWith(this string text, string startDelimiter) =>
+        SurroundWith(text, startDelimiter, startDelimiter);
 
     /// <summary>Returns the text wrapped between the two delimiters.</summary>
     /// <param name="text">The text to wrap.</param>
     /// <param name="startDelimiter">The leading delimiter.</param>
     /// <param name="endDelimiter">The trailing delimiter.</param>
-    public static string SurroundWith(this string text, string startDelimiter, string endDelimiter)
-        => $"{startDelimiter}{text}{endDelimiter}";
+    public static string SurroundWith(
+        this string text,
+        string startDelimiter,
+        string endDelimiter
+    ) => $"{startDelimiter}{text}{endDelimiter}";
 
     /// <summary>Parses the text into a value of the given parsable type using the current culture.</summary>
     /// <typeparam name="T">The parsable type.</typeparam>
     /// <param name="text">The text to parse.</param>
-    public static T Parse<T>(this string text) where T : IParsable<T>
-        => T.Parse(text, CultureInfo.CurrentCulture);
+    public static T Parse<T>(this string text)
+        where T : IParsable<T> => T.Parse(text, CultureInfo.CurrentCulture);
 
     /// <summary>Tries to parse the text into a value of the given parsable type using the current culture.</summary>
     /// <typeparam name="T">The parsable type.</typeparam>
     /// <param name="text">The text to parse.</param>
     /// <param name="value">The parsed value on success.</param>
-    public static bool TryParse<T>(this string text, [NotNullWhen(true)] out T? value) where T : IParsable<T>
-        => T.TryParse(text, CultureInfo.CurrentCulture, out value);
+    public static bool TryParse<T>(this string? text, [NotNullWhen(true)] out T? value)
+        where T : IParsable<T> => T.TryParse(text, CultureInfo.CurrentCulture, out value);
 }

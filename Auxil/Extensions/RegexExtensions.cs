@@ -28,20 +28,14 @@ public static class RegexExtensions
         ArgumentNullException.ThrowIfNull(regex);
         ArgumentNullException.ThrowIfNull(input);
 
-        return regex.Matches(input)
-            .Select(match => BuildRegexResult(match, input, regex))
-            .ToList();
+        return regex.Matches(input).Select(match => BuildRegexResult(match, input, regex)).ToList();
     }
 
     private static RegexResult BuildRegexResult(Match match, string input, Regex regex)
     {
         if (!match.Success)
         {
-            return new RegexResult
-            {
-                InputText = input,
-                Pattern = regex.ToString()
-            };
+            return new RegexResult { InputText = input, Pattern = regex.ToString() };
         }
 
         Dictionary<string, string> namedCaptures = [];
@@ -70,7 +64,7 @@ public static class RegexExtensions
             Groups = namedCaptures,
             Success = true,
             StartIndex = startIndex,
-            EndIndex = endIndex
+            EndIndex = endIndex,
         };
     }
 }

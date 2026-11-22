@@ -24,5 +24,5 @@ public interface ILanguage
     /// language overrides the hooks by declaring its own Shapes member
     /// (implicit interface implementation, no override keyword).
     /// </summary>
-    static virtual Shapes Shapes => Shapes.Default;
+    static virtual SyntaxShapes Shapes => SyntaxShapes.Default;
 }

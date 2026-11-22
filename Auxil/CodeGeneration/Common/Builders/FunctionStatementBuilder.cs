@@ -35,7 +35,7 @@ public class FunctionStatementBuilder<TLanguage>
     }
 
     /// <summary>Adds the async modifier.</summary>
-    public FunctionStatementBuilder<TLanguage> Async()
+    public FunctionStatementBuilder<TLanguage> AsyncModifier()
     {
         _function.Modifiers |= CodeModifier.Async;
         return this;
@@ -45,9 +45,20 @@ public class FunctionStatementBuilder<TLanguage>
     /// <param name="name">The type parameter name, e.g. "T".</param>
     /// <param name="constraint">An optional constraint (rendered per language).</param>
     /// <param name="defaultValue">An optional default type argument (TypeScript only).</param>
-    public FunctionStatementBuilder<TLanguage> Generic(string name, string? constraint = null, string? defaultValue = null)
+    public FunctionStatementBuilder<TLanguage> Generic(
+        string name,
+        string? constraint = null,
+        string? defaultValue = null
+    )
     {
-        _function.Generics.Add(new CodeGenericParameter { Name = name, Constraint = constraint, DefaultValue = defaultValue });
+        _function.Generics.Add(
+            new CodeGenericParameter
+            {
+                Name = name,
+                Constraint = constraint,
+                DefaultValue = defaultValue,
+            }
+        );
         return this;
     }
 
@@ -55,9 +66,18 @@ public class FunctionStatementBuilder<TLanguage>
     /// <param name="name">The parameter name.</param>
     /// <param name="type">The parameter type.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FunctionStatementBuilder<TLanguage> Parameter(string name, CodeType? type = null, string? defaultValue = null)
+    public FunctionStatementBuilder<TLanguage> Parameter(
+        string name,
+        CodeType? type = null,
+        string? defaultValue = null
+    )
     {
-        CodeParameter parameter = new() { Name = name, Type = type, DefaultValue = defaultValue };
+        CodeParameter parameter = new()
+        {
+            Name = name,
+            Type = type,
+            DefaultValue = defaultValue,
+        };
         _lastParameter = parameter;
         _function.Parameters.Add(parameter);
         return this;
@@ -67,7 +87,11 @@ public class FunctionStatementBuilder<TLanguage>
     /// <param name="name">The parameter name.</param>
     /// <param name="typeName">The parameter type name.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FunctionStatementBuilder<TLanguage> Parameter(string name, string typeName, string? defaultValue = null)
+    public FunctionStatementBuilder<TLanguage> Parameter(
+        string name,
+        string typeName,
+        string? defaultValue = null
+    )
     {
         return Parameter(name, CodeType.Of(typeName), defaultValue);
     }

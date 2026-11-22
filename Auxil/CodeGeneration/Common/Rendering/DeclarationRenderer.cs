@@ -13,8 +13,6 @@ namespace Auxil.CodeGeneration.Common.Rendering;
 /// </summary>
 internal static class DeclarationRenderer
 {
-    // ---- Class ----
-
     public static void RenderClass(RenderContext ctx, CodeClass cls)
     {
         WriteDocComment(ctx, cls);
@@ -22,8 +20,19 @@ internal static class DeclarationRenderer
         WarnUnsupportedModifiers(ctx, cls);
         WarnGenerics(ctx, cls.Generics, $"class {cls.Name}");
 
-        string header = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(cls.Modifiers),
-            ctx.Shapes.ClassHeader(ctx.Shape, cls.Name, cls.Generics, cls.ExtendsType, cls.ImplementsTypes)]);
+        string header = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(cls.Modifiers),
+                ctx.Shapes.ClassHeader(
+                    ctx.Shape,
+                    cls.Name,
+                    cls.Generics,
+                    cls.ExtendsType,
+                    cls.ImplementsTypes
+                ),
+            ]
+        );
 
         ShapeBlocks.Open(ctx.Shape, header);
 
@@ -32,8 +41,6 @@ internal static class DeclarationRenderer
         ShapeBlocks.Close(ctx.Shape);
     }
 
-    // ---- Interface ----
-
     public static void RenderInterface(RenderContext ctx, CodeInterface iface)
     {
         WriteDocComment(ctx, iface);
@@ -41,15 +48,29 @@ internal static class DeclarationRenderer
         WarnUnsupportedModifiers(ctx, iface);
         WarnGenerics(ctx, iface.Generics, $"interface {iface.Name}");
 
-        string header = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(iface.Modifiers),
-            ctx.Shapes.InterfaceHeader(ctx.Shape, iface.Name, iface.Generics, iface.ExtendsTypes)]);
+        string header = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(iface.Modifiers),
+                ctx.Shapes.InterfaceHeader(
+                    ctx.Shape,
+                    iface.Name,
+                    iface.Generics,
+                    iface.ExtendsTypes
+                ),
+            ]
+        );
 
         ShapeBlocks.Open(ctx.Shape, header);
 
         CodeNode? previous = null;
         foreach (CodeNode member in iface.Members)
         {
-            bool renders = NodeFeatures.CanRenderInContext(ctx, member, NodeContext.InterfaceMember);
+            bool renders = NodeFeatures.CanRenderInContext(
+                ctx,
+                member,
+                NodeContext.InterfaceMember
+            );
             if (renders && previous is not null && !IsRelatedDataMember(member, previous, ctx))
             {
                 ctx.Writer.BlankLine();
@@ -69,7 +90,16 @@ internal static class DeclarationRenderer
         WriteDocComment(ctx, field);
         WriteAnnotations(ctx, field.Annotations);
 
-        string text = ctx.Shapes.Field(ctx.Shape, field.Name, field.Type, field.Nullable, field.DefaultValue, isConst: false, keyword: string.Empty, isInterfaceMember: true);
+        string text = ctx.Shapes.Field(
+            ctx.Shape,
+            field.Name,
+            field.Type,
+            field.Nullable,
+            field.DefaultValue,
+            isConst: false,
+            keyword: string.Empty,
+            isInterfaceMember: true
+        );
         if (ctx.Syntax.PropertyStyle == PropertyStyle.AsField)
         {
             ctx.Writer.WriteStatement(text);
@@ -85,7 +115,13 @@ internal static class DeclarationRenderer
         WriteDocComment(ctx, property);
         WriteAnnotations(ctx, property.Annotations);
 
-        ctx.Shapes.Property(ctx.Shape, property, prefix: string.Empty, isTopLevel: false, isInterfaceMember: true);
+        ctx.Shapes.Property(
+            ctx.Shape,
+            property,
+            prefix: string.Empty,
+            isTopLevel: false,
+            isInterfaceMember: true
+        );
     }
 
     internal static void RenderInterfaceMethod(RenderContext ctx, CodeMethod method)
@@ -95,10 +131,19 @@ internal static class DeclarationRenderer
         WarnUnsupportedModifiers(ctx, method);
         WarnGenerics(ctx, method.Generics, $"method {method.Name}");
         bool interfaceMode = ctx.Syntax.ParameterStyle == ParameterStyle.NameFirst;
-        ctx.Writer.WriteStatement(ctx.Shapes.Signature(ctx.Shape, SignatureKind.Method, method.Name, method.Parameters, method.Generics, method.ReturnType, className: string.Empty, interfaceMode));
+        ctx.Writer.WriteStatement(
+            ctx.Shapes.Signature(
+                ctx.Shape,
+                SignatureKind.Method,
+                method.Name,
+                method.Parameters,
+                method.Generics,
+                method.ReturnType,
+                className: string.Empty,
+                interfaceMode
+            )
+        );
     }
-
-    // ---- Enum ----
 
     public static void RenderEnum(RenderContext ctx, CodeEnum enm)
     {
@@ -109,8 +154,6 @@ internal static class DeclarationRenderer
         string prefix = string.Join(" ", ctx.Syntax.BuildModifierPrefix(enm.Modifiers));
         ctx.Shapes.Enum(ctx.Shape, enm, prefix);
     }
-
-    // ---- Namespace ----
 
     public static void RenderNamespace(RenderContext ctx, CodeNamespace namespaceNode)
     {
@@ -132,23 +175,23 @@ internal static class DeclarationRenderer
         }
     }
 
-    // ---- Signal ----
-
     public static void RenderSignal(RenderContext ctx, CodeSignal signal)
     {
         WriteDocComment(ctx, signal);
-        ctx.Writer.WriteLine($"{ctx.Syntax.KeywordSignal} {signal.Name}({BuildParamList(ctx, signal.Parameters)})");
+        ctx.Writer.WriteLine(
+            $"{ctx.Syntax.KeywordSignal} {signal.Name}({BuildParamList(ctx, signal.Parameters)})"
+        );
     }
-
-    // ---- Import ----
 
     public static void RenderImport(RenderContext ctx, CodeImport import)
     {
         if (ctx.Syntax.ImportStyle == ImportStyle.Using)
         {
-            ctx.Writer.WriteStatement(import.DefaultName is not null
-                ? $"using {import.DefaultName} = {import.From}"
-                : $"using {import.From}");
+            ctx.Writer.WriteStatement(
+                import.DefaultName is not null
+                    ? $"using {import.DefaultName} = {import.From}"
+                    : $"using {import.From}"
+            );
             return;
         }
 
@@ -161,14 +204,14 @@ internal static class DeclarationRenderer
         if (import.NamedNames.Count > 0)
         {
             string namesList = string.Join(", ", import.NamedNames);
-            parts.Add(import.DefaultName is not null ? $", {{ {namesList} }}" : $"{{ {namesList} }}");
+            parts.Add(
+                import.DefaultName is not null ? $", {{ {namesList} }}" : $"{{ {namesList} }}"
+            );
         }
 
         string body = parts.Count > 0 ? string.Join(string.Empty, parts) + " from " : string.Empty;
         ctx.Writer.WriteStatement($"import {body}\"{import.From}\"");
     }
-
-    // ---- Type alias ----
 
     public static void RenderTypeAlias(RenderContext ctx, CodeTypeAlias alias)
     {
@@ -176,12 +219,15 @@ internal static class DeclarationRenderer
         WriteAnnotations(ctx, alias.Annotations);
         WarnUnsupportedModifiers(ctx, alias);
 
-        string line = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(alias.Modifiers),
-            $"{ctx.Syntax.KeywordTypeAlias} {alias.Name} = {alias.Definition}"]);
+        string line = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(alias.Modifiers),
+                $"{ctx.Syntax.KeywordTypeAlias} {alias.Name} = {alias.Definition}",
+            ]
+        );
         ctx.Writer.WriteStatement(line);
     }
-
-    // ---- Field ----
 
     public static void RenderField(RenderContext ctx, CodeField field, bool isTopLevel = false)
     {
@@ -190,13 +236,26 @@ internal static class DeclarationRenderer
         WarnUnsupportedModifiers(ctx, field);
 
         string keyword = isTopLevel ? ctx.Syntax.TopLevelFieldKeyword : ctx.Syntax.FieldKeyword;
-        string declaration = ctx.Shapes.Field(ctx.Shape, field.Name, field.Type, field.Nullable, field.DefaultValue, field.Modifiers.HasFlag(CodeModifier.Const), keyword, isInterfaceMember: false);
-        ctx.Writer.WriteStatement(string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(field.Modifiers), declaration]));
+        string declaration = ctx.Shapes.Field(
+            ctx.Shape,
+            field.Name,
+            field.Type,
+            field.Nullable,
+            field.DefaultValue,
+            field.Modifiers.HasFlag(CodeModifier.Const),
+            keyword,
+            isInterfaceMember: false
+        );
+        ctx.Writer.WriteStatement(
+            string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(field.Modifiers), declaration])
+        );
     }
 
-    // ---- Property ----
-
-    public static void RenderProperty(RenderContext ctx, CodeProperty property, bool isTopLevel = false)
+    public static void RenderProperty(
+        RenderContext ctx,
+        CodeProperty property,
+        bool isTopLevel = false
+    )
     {
         WriteDocComment(ctx, property);
         WriteAnnotations(ctx, property.Annotations);
@@ -206,8 +265,6 @@ internal static class DeclarationRenderer
         ctx.Shapes.Property(ctx.Shape, property, prefix, isTopLevel, isInterfaceMember: false);
     }
 
-    // ---- Method / Constructor / Function ----
-
     public static void RenderMethod(RenderContext ctx, CodeMethod method)
     {
         WriteDocComment(ctx, method);
@@ -215,8 +272,22 @@ internal static class DeclarationRenderer
         WarnUnsupportedModifiers(ctx, method);
         WarnGenerics(ctx, method.Generics, $"method {method.Name}");
 
-        string header = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(method.Modifiers),
-            ctx.Shapes.Signature(ctx.Shape, SignatureKind.Method, method.Name, method.Parameters, method.Generics, method.ReturnType, className: string.Empty, interfaceMode: false)]);
+        string header = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(method.Modifiers),
+                ctx.Shapes.Signature(
+                    ctx.Shape,
+                    SignatureKind.Method,
+                    method.Name,
+                    method.Parameters,
+                    method.Generics,
+                    method.ReturnType,
+                    className: string.Empty,
+                    interfaceMode: false
+                ),
+            ]
+        );
 
         if (method.Modifiers.HasFlag(CodeModifier.Abstract))
         {
@@ -235,8 +306,22 @@ internal static class DeclarationRenderer
         WriteAnnotations(ctx, ctor.Annotations);
         WarnUnsupportedModifiers(ctx, ctor);
 
-        string header = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(ctor.Modifiers),
-            ctx.Shapes.Signature(ctx.Shape, SignatureKind.Constructor, string.Empty, ctor.Parameters, [], null, className, interfaceMode: false)]);
+        string header = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(ctor.Modifiers),
+                ctx.Shapes.Signature(
+                    ctx.Shape,
+                    SignatureKind.Constructor,
+                    string.Empty,
+                    ctor.Parameters,
+                    [],
+                    null,
+                    className,
+                    interfaceMode: false
+                ),
+            ]
+        );
 
         ShapeBlocks.Open(ctx.Shape, header);
         StatementRenderer.RenderBody(ctx, ctor.Body);
@@ -249,68 +334,94 @@ internal static class DeclarationRenderer
         WriteAnnotations(ctx, function.Annotations);
         WarnUnsupportedModifiers(ctx, function);
 
-        string header = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(function.Modifiers),
-            ctx.Shapes.Signature(ctx.Shape, SignatureKind.Function, function.Name, function.Parameters, function.Generics, function.ReturnType, className: string.Empty, interfaceMode: false)]);
+        string header = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(function.Modifiers),
+                ctx.Shapes.Signature(
+                    ctx.Shape,
+                    SignatureKind.Function,
+                    function.Name,
+                    function.Parameters,
+                    function.Generics,
+                    function.ReturnType,
+                    className: string.Empty,
+                    interfaceMode: false
+                ),
+            ]
+        );
 
         ShapeBlocks.Open(ctx.Shape, header);
         StatementRenderer.RenderBody(ctx, function.Body);
         ShapeBlocks.Close(ctx.Shape);
     }
 
-    // ---- Shared helpers ----
-
     private static string BuildParamList(RenderContext ctx, List<CodeParameter> parameters)
     {
-        return string.Join(", ", parameters.Select(p =>
-        {
-            if (ctx.Syntax.ParameterStyle == ParameterStyle.TypeFirst)
+        return string.Join(
+            ", ",
+            parameters.Select(p =>
             {
-                string result = p.Name;
+                if (ctx.Syntax.ParameterStyle == ParameterStyle.TypeFirst)
+                {
+                    string result = p.Name;
+                    if (p.Type is not null)
+                    {
+                        result =
+                            $"{ctx.Syntax.MapType(p.Type)}{(ctx.Syntax.SupportsNullable && p.Nullable ? "?" : "")} {result}";
+                    }
+
+                    if (p.DefaultValue is not null)
+                    {
+                        result += $" = {p.DefaultValue}";
+                    }
+
+                    return result;
+                }
+
+                string name = p.Name;
                 if (p.Type is not null)
                 {
-                    result = $"{ctx.Syntax.MapType(p.Type)}{(ctx.Syntax.SupportsNullable && p.Nullable ? "?" : "")} {result}";
+                    name += $": {ctx.Syntax.MapType(p.Type)}";
                 }
 
                 if (p.DefaultValue is not null)
                 {
-                    result += $" = {p.DefaultValue}";
+                    name += $" = {p.DefaultValue}";
                 }
 
-                return result;
-            }
-
-            string name = p.Name;
-            if (p.Type is not null)
-            {
-                name += $": {ctx.Syntax.MapType(p.Type)}";
-            }
-
-            if (p.DefaultValue is not null)
-            {
-                name += $" = {p.DefaultValue}";
-            }
-
-            return name;
-        }));
+                return name;
+            })
+        );
     }
 
-    private static void WarnGenerics(RenderContext ctx, List<CodeGenericParameter> generics, string context)
+    private static void WarnGenerics(
+        RenderContext ctx,
+        List<CodeGenericParameter> generics,
+        string context
+    )
     {
         if (generics.Count > 0 && ctx.Syntax.GenericStyle == GenericStyle.None)
         {
-            ctx.Warnings.Add($"Generics on {context} are not supported in {ctx.LanguageName}; skipped.");
+            ctx.Warnings.Add(
+                $"Generics on {context} are not supported in {ctx.LanguageName}; skipped."
+            );
         }
 
         if (ctx.Syntax.GenericStyle == GenericStyle.WhereClauses)
         {
-            foreach (CodeGenericParameter generic in generics.Where(g => g.DefaultValue is not null))
+            foreach (
+                CodeGenericParameter generic in generics.Where(g => g.DefaultValue is not null)
+            )
             {
-                ctx.Warnings.Add($"Default generic type argument on '{generic.Name}' is not supported in {ctx.LanguageName}; skipped.");
+                ctx.Warnings.Add(
+                    $"Default generic type argument on '{generic.Name}' is not supported in {ctx.LanguageName}; skipped."
+                );
             }
         }
     }
 
-        private static void WarnUnsupportedModifiers(RenderContext ctx, CodeMember member)
+    private static void WarnUnsupportedModifiers(RenderContext ctx, CodeMember member)
     {
         foreach (CodeModifier modifier in Enum.GetValues<CodeModifier>())
         {
@@ -321,7 +432,9 @@ internal static class DeclarationRenderer
 
             if (member.Modifiers.HasFlag(modifier) && !ctx.Syntax.IsModifierSupported(modifier))
             {
-                ctx.Warnings.Add($"{modifier} modifier is not supported in {ctx.LanguageName}; skipped.");
+                ctx.Warnings.Add(
+                    $"{modifier} modifier is not supported in {ctx.LanguageName}; skipped."
+                );
             }
         }
     }
@@ -339,21 +452,33 @@ internal static class DeclarationRenderer
         }
     }
 
-    internal static void WriteAnnotations(RenderContext ctx, IEnumerable<CodeAnnotation> annotations)
+    internal static void WriteAnnotations(
+        RenderContext ctx,
+        IEnumerable<CodeAnnotation> annotations
+    )
     {
         foreach (CodeAnnotation annotation in annotations)
         {
-            string body = annotation.Arguments.Count > 0
-                ? $"{annotation.Name}({string.Join(", ", annotation.Arguments)})"
-                : annotation.Name;
+            string body =
+                annotation.Arguments.Count > 0
+                    ? $"{annotation.Name}({string.Join(", ", annotation.Arguments)})"
+                    : annotation.Name;
 
-            ctx.Writer.WriteLine(ctx.Syntax.AnnotationStyle == AnnotationStyle.Square ? $"[{body}]" : $"@{body}");
+            ctx.Writer.WriteLine(
+                ctx.Syntax.AnnotationStyle == AnnotationStyle.Square ? $"[{body}]" : $"@{body}"
+            );
         }
     }
 
     private static void RenderMembers(RenderContext ctx, List<CodeNode> members, string className)
     {
-        if (ctx.Syntax.BlockStyle == BlockStyle.Indentation && (members.Count == 0 || !members.Any(m => NodeFeatures.CanRender(ctx, m, NodeContext.ClassMember))))
+        if (
+            ctx.Syntax.BlockStyle == BlockStyle.Indentation
+            && (
+                members.Count == 0
+                || !members.Any(m => NodeFeatures.CanRender(ctx, m, NodeContext.ClassMember))
+            )
+        )
         {
             ctx.Writer.WriteLine(ctx.Syntax.KeywordPass);
         }
@@ -383,7 +508,8 @@ internal static class DeclarationRenderer
 
         bool includeProperties = ctx.Syntax.BlockStyle != BlockStyle.Indentation;
         bool isDataMember = node is CodeField || (includeProperties && node is CodeProperty);
-        bool previousIsDataMember = previous is CodeField || (includeProperties && previous is CodeProperty);
+        bool previousIsDataMember =
+            previous is CodeField || (includeProperties && previous is CodeProperty);
 
         if (!isDataMember || !previousIsDataMember)
         {

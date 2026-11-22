@@ -13,9 +13,18 @@ namespace Auxil.CodeGeneration.Common.Rendering;
 [PublicAPI]
 public sealed class LanguageProfile
 {
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, LanguageProfile> Cache = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<
+        Type,
+        LanguageProfile
+    > Cache = new();
 
-    private LanguageProfile(Type languageType, string name, LanguageSyntax syntax, Shapes shapes, IReadOnlySet<Type> traits)
+    private LanguageProfile(
+        Type languageType,
+        string name,
+        LanguageSyntax syntax,
+        SyntaxShapes shapes,
+        IReadOnlySet<Type> traits
+    )
     {
         LanguageType = languageType;
         Name = name;
@@ -34,7 +43,7 @@ public sealed class LanguageProfile
     public LanguageSyntax Syntax { get; }
 
     /// <summary>The language's shape bundle.</summary>
-    public Shapes Shapes { get; }
+    public SyntaxShapes Shapes { get; }
 
     /// <summary>The feature traits the language implements.</summary>
     public IReadOnlySet<Type> Traits { get; }
@@ -56,9 +65,16 @@ public sealed class LanguageProfile
         where TLanguage : struct, ILanguage
     {
         Type languageType = typeof(TLanguage);
-        IReadOnlySet<Type> traits = languageType.GetInterfaces()
+        IReadOnlySet<Type> traits = languageType
+            .GetInterfaces()
             .Where(i => typeof(ILanguageFeature).IsAssignableFrom(i))
             .ToHashSet();
-        return new LanguageProfile(languageType, TLanguage.Name, TLanguage.Syntax, TLanguage.Shapes, traits);
+        return new LanguageProfile(
+            languageType,
+            TLanguage.Name,
+            TLanguage.Syntax,
+            TLanguage.Shapes,
+            traits
+        );
     }
 }

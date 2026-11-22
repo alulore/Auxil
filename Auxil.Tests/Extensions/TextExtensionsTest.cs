@@ -1,21 +1,26 @@
-using JetBrains.Annotations;
 using Auxil.Common.Text;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
 [TestSubject(typeof(StringExtensions))]
 public class TextExtensionsTest
 {
-    private static IsBetweenSearchOptions Options(string textToFind, char leftDelimiter, char rightDelimiter,
-        bool canBeEscaped = false, char escapeChar = '\0')
-        => new()
+    private static IsBetweenSearchOptions Options(
+        string textToFind,
+        char leftDelimiter,
+        char rightDelimiter,
+        bool canBeEscaped = false,
+        char escapeChar = '\0'
+    ) =>
+        new()
         {
             TextToFind = textToFind,
             LeftDelimiter = leftDelimiter,
             RightDelimiter = rightDelimiter,
             CanBeEscaped = canBeEscaped,
-            EscapeChar = escapeChar
+            EscapeChar = escapeChar,
         };
 
     [Theory]
@@ -39,10 +44,7 @@ public class TextExtensionsTest
     [InlineData("hello123", true, 1)]
     public void CountWords_WithCountNumbers(string text, bool countNumbers, int expected)
     {
-        TextOptions options = new()
-        {
-            CountNumbers = countNumbers
-        };
+        TextOptions options = new() { CountNumbers = countNumbers };
 
         text.CountWords(options).ShouldBe(expected);
     }
@@ -50,24 +52,12 @@ public class TextExtensionsTest
     [Fact]
     public void CountWords_CountHyphenatedWordAsSingle()
     {
-        TextOptions asSingle = new()
-        {
-            CountHyphenatedWordAsSingle = true
-        };
+        TextOptions asSingle = new() { CountHyphenatedWordAsSingle = true };
 
-        TextOptions asSeparate = new()
-        {
-            CountHyphenatedWordAsSingle = false
-        };
+        TextOptions asSeparate = new() { CountHyphenatedWordAsSingle = false };
 
         "hello-world".CountWords(asSingle).ShouldBe(1);
         "hello-world".CountWords(asSeparate).ShouldBe(2);
-    }
-
-    [Fact]
-    public void CountWords_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => ((string?)null)!.CountWords());
     }
 
     [Theory]
@@ -89,10 +79,7 @@ public class TextExtensionsTest
     [Fact]
     public void CountCharacters_ExcludesCustomCharacters()
     {
-        TextOptions options = new()
-        {
-            CharactersToExclude = ['.', ',']
-        };
+        TextOptions options = new() { CharactersToExclude = ['.', ','] };
 
         "a.b,c".CountCharacters(options).ShouldBe(3);
     }
@@ -125,10 +112,7 @@ public class TextExtensionsTest
     [Fact]
     public void CountSentences_CountsSentenceEndFollowedByLowercaseWordWhenNotExcluded()
     {
-        TextOptions options = new()
-        {
-            ExcludeLowerCharacterAfterSentenceEnd = false
-        };
+        TextOptions options = new() { ExcludeLowerCharacterAfterSentenceEnd = false };
 
         "Is this it. yes".CountSentences(options).ShouldBe(2);
     }
@@ -142,15 +126,9 @@ public class TextExtensionsTest
     [Fact]
     public void CountUniqueWords_RespectsCaseSensitivity()
     {
-        TextOptions caseInsensitive = new()
-        {
-            CountCaseSensitiveWords = false
-        };
+        TextOptions caseInsensitive = new() { CountCaseSensitiveWords = false };
 
-        TextOptions caseSensitive = new()
-        {
-            CountCaseSensitiveWords = true
-        };
+        TextOptions caseSensitive = new() { CountCaseSensitiveWords = true };
 
         "Hello hello HELLO".CountUniqueWords(caseInsensitive).ShouldBe(1);
         "Hello hello HELLO".CountUniqueWords(caseSensitive).ShouldBe(3);
@@ -171,13 +149,15 @@ public class TextExtensionsTest
     {
         Dictionary<string, int> frequency = "the cat and the dog".GetWordFrequency();
 
-        frequency.ShouldBe(new Dictionary<string, int>
-        {
-            ["the"] = 2,
-            ["cat"] = 1,
-            ["and"] = 1,
-            ["dog"] = 1
-        });
+        frequency.ShouldBe(
+            new Dictionary<string, int>
+            {
+                ["the"] = 2,
+                ["cat"] = 1,
+                ["and"] = 1,
+                ["dog"] = 1,
+            }
+        );
     }
 
     [Fact]
@@ -191,10 +171,7 @@ public class TextExtensionsTest
     [Fact]
     public void GetWordFrequency_IsCaseSensitiveWithOption()
     {
-        TextOptions options = new()
-        {
-            CountCaseSensitiveWords = true
-        };
+        TextOptions options = new() { CountCaseSensitiveWords = true };
 
         Dictionary<string, int> frequency = "The cat the".GetWordFrequency(options);
 
@@ -227,7 +204,12 @@ public class TextExtensionsTest
     [InlineData("x(abc)y", "abc", '(', ')')]
     [InlineData("[hello world]", "hello world", '[', ']')]
     [InlineData("x(abc) (def)y", "def", '(', ')')]
-    public void IsBetween_ReturnsTrue(string overallText, string textToFind, char leftDelimiter, char rightDelimiter)
+    public void IsBetween_ReturnsTrue(
+        string overallText,
+        string textToFind,
+        char leftDelimiter,
+        char rightDelimiter
+    )
     {
         overallText.IsBetween(textToFind, leftDelimiter, rightDelimiter).ShouldBeTrue();
     }
@@ -238,7 +220,12 @@ public class TextExtensionsTest
     [InlineData("abc", "abc", '(', ')')]
     [InlineData("x(abc)", "def", '(', ')')]
     [InlineData("x(abc)", "abc", ')', '(')]
-    public void IsBetween_ReturnsFalse(string overallText, string textToFind, char leftDelimiter, char rightDelimiter)
+    public void IsBetween_ReturnsFalse(
+        string overallText,
+        string textToFind,
+        char leftDelimiter,
+        char rightDelimiter
+    )
     {
         overallText.IsBetween(textToFind, leftDelimiter, rightDelimiter).ShouldBeFalse();
     }
@@ -246,7 +233,9 @@ public class TextExtensionsTest
     [Fact]
     public void IsBetween_EscapedLeftDelimiterNotCounted()
     {
-        ("\\" + "(abc)").IsBetween("abc", '(', ')', canBeEscaped: true, escapeChar: '\\').ShouldBeFalse();
+        ("\\" + "(abc)")
+            .IsBetween("abc", '(', ')', canBeEscaped: true, escapeChar: '\\')
+            .ShouldBeFalse();
     }
 
     [Fact]
@@ -270,7 +259,7 @@ public class TextExtensionsTest
             TextToFind = "def",
             LeftDelimiter = '(',
             RightDelimiter = ')',
-            StartIndex = 5
+            StartIndex = 5,
         };
 
         "(abc) (def)".IsBetween("def", '(', ')', startIndex: 5).ShouldBeTrue();
@@ -290,11 +279,5 @@ public class TextExtensionsTest
     public void IsBetween_ReturnsFalseForEmptyTextToFind()
     {
         "(abc)".IsBetween("", '(', ')').ShouldBeFalse();
-    }
-
-    [Fact]
-    public void IsBetween_ThrowsOnNullTextToFind()
-    {
-        Should.Throw<ArgumentNullException>(() => ((string?)null)!.IsBetween("abc", '(', ')'));
     }
 }

@@ -122,7 +122,14 @@ public class CodeWriter
     /// </summary>
     public void OpenBlock(string header)
     {
-        WriteLine(header + (Syntax.BlockStyle == BlockStyle.Braces ? Syntax.BlockOpen : Syntax.HeaderTerminator));
+        WriteLine(
+            header
+                + (
+                    Syntax.BlockStyle == BlockStyle.Braces
+                        ? Syntax.BlockOpen
+                        : Syntax.HeaderTerminator
+                )
+        );
         Indent();
     }
 
@@ -217,7 +224,7 @@ public class CodeWriter
         {
             true => ";",
             false => string.Empty,
-            null => Syntax.StatementTerminator
+            null => Syntax.StatementTerminator,
         };
     }
 

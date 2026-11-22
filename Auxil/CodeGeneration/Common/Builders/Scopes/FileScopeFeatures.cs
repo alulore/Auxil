@@ -10,7 +10,8 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 [PublicAPI]
 public static class FileScopeFeatures
 {
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasScriptClass
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasScriptClass
     {
         /// <summary>Sets the file's class name (GDScript class_name).</summary>
         /// <param name="name">The class name.</param>
@@ -29,13 +30,18 @@ public static class FileScopeFeatures
         }
     }
 
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasImports
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasImports
     {
         /// <summary>Adds an import/using directive.</summary>
         /// <param name="from">The imported module, namespace, or path.</param>
         /// <param name="defaultName">An optional default/alias name.</param>
         /// <param name="named">Named members to import (TypeScript).</param>
-        public FileScope<TLanguage> Import(string from, string? defaultName = null, params string[] named)
+        public FileScope<TLanguage> Import(
+            string from,
+            string? defaultName = null,
+            params string[] named
+        )
         {
             CodeImport import = new() { From = from, DefaultName = defaultName };
             import.NamedNames.AddRange(named);
@@ -44,7 +50,8 @@ public static class FileScopeFeatures
         }
     }
 
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasNamespaces
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasNamespaces
     {
         /// <summary>Adds a top-level namespace declaration.</summary>
         /// <param name="name">The namespace name.</param>
@@ -52,11 +59,16 @@ public static class FileScopeFeatures
         {
             CodeNamespace namespaceNode = new() { Name = name };
             scope.FileNode.Children.Add(namespaceNode);
-            return new NamespaceScope<TLanguage, FileScope<TLanguage>>(scope.Builder, namespaceNode, scope);
+            return new NamespaceScope<TLanguage, FileScope<TLanguage>>(
+                scope.Builder,
+                namespaceNode,
+                scope
+            );
         }
     }
 
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasInterfaces
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasInterfaces
     {
         /// <summary>Adds a top-level interface declaration.</summary>
         /// <param name="name">The interface name.</param>
@@ -68,7 +80,8 @@ public static class FileScopeFeatures
         }
     }
 
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasSignals
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasSignals
     {
         /// <summary>Adds a top-level signal declaration.</summary>
         /// <param name="name">The signal name.</param>
@@ -80,18 +93,24 @@ public static class FileScopeFeatures
         }
     }
 
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasConstructors
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasConstructors
     {
         /// <summary>Adds a top-level constructor.</summary>
         public ConstructorScope<TLanguage, FileScope<TLanguage>> Constructor()
         {
             CodeConstructor ctor = new();
             scope.FileNode.Children.Add(ctor);
-            return new ConstructorScope<TLanguage, FileScope<TLanguage>>(scope.Builder, ctor, scope);
+            return new ConstructorScope<TLanguage, FileScope<TLanguage>>(
+                scope.Builder,
+                ctor,
+                scope
+            );
         }
     }
 
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasTopLevelFunctions
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasTopLevelFunctions
     {
         /// <summary>Adds a top-level function declaration.</summary>
         /// <param name="name">The function name.</param>
@@ -99,16 +118,24 @@ public static class FileScopeFeatures
         {
             CodeFunction function = new() { Name = name };
             scope.FileNode.Children.Add(function);
-            return new FunctionScope<TLanguage, FileScope<TLanguage>>(scope.Builder, function, scope);
+            return new FunctionScope<TLanguage, FileScope<TLanguage>>(
+                scope.Builder,
+                function,
+                scope
+            );
         }
     }
 
-    extension<TLanguage>(FileScope<TLanguage> scope) where TLanguage : struct, ILanguage, IHasTypeAliases
+    extension<TLanguage>(FileScope<TLanguage> scope)
+        where TLanguage : struct, ILanguage, IHasTypeAliases
     {
         /// <summary>Adds a named type alias declaration.</summary>
         /// <param name="name">The alias name, written verbatim (may include generics).</param>
         /// <param name="definition">The aliased definition, written verbatim.</param>
-        public TypeAliasScope<TLanguage, FileScope<TLanguage>> TypeAlias(string name, string definition)
+        public TypeAliasScope<TLanguage, FileScope<TLanguage>> TypeAlias(
+            string name,
+            string definition
+        )
         {
             CodeTypeAlias alias = new() { Name = name, Definition = definition };
             scope.FileNode.Children.Add(alias);

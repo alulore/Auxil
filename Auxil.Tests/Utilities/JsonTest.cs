@@ -19,10 +19,7 @@ public class JsonTest
     [Fact]
     public void Serialize_CompactWithOptions()
     {
-        JsonSerializerOptions compact = new()
-        {
-            WriteIndented = false
-        };
+        JsonSerializerOptions compact = new() { WriteIndented = false };
 
         string json = Json.Serialize(new { Name = "test" }, compact);
 
@@ -56,7 +53,9 @@ public class JsonTest
     [Fact]
     public void DeserializeSingleOrList_SingleObjectInput()
     {
-        List<TestPayload> result = Json.DeserializeSingleOrList<TestPayload>("""{"Name":"single","Count":1}""");
+        List<TestPayload> result = Json.DeserializeSingleOrList<TestPayload>(
+            """{"Name":"single","Count":1}"""
+        );
 
         result.Count.ShouldBe(1);
         result[0].Name.ShouldBe("single");
@@ -78,25 +77,13 @@ public class JsonTest
         Should.Throw<JsonException>(() => Json.DeserializeSingleOrList<int>("not json"));
     }
 
-    [Fact]
-    public void DeserializeSingleOrList_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => Json.DeserializeSingleOrList<int>(null!));
-    }
-
-    [Fact]
-    public void Deserialize_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => Json.Deserialize<int>(null!));
-    }
-
     private sealed class TestPayload : IEquatable<TestPayload>
     {
         public string Name { get; init; } = string.Empty;
         public int Count { get; init; }
 
-        public bool Equals(TestPayload? other)
-            => other is not null && Name == other.Name && Count == other.Count;
+        public bool Equals(TestPayload? other) =>
+            other is not null && Name == other.Name && Count == other.Count;
 
         public override bool Equals(object? obj) => Equals(obj as TestPayload);
 

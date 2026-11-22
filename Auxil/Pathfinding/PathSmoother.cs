@@ -16,20 +16,18 @@ public static class PathSmoother
     public static IReadOnlyList<PathPoint> Smooth(PathMap map, IReadOnlyList<PathPoint> path)
     {
         ArgumentNullException.ThrowIfNull(map);
+        ArgumentNullException.ThrowIfNull(path);
         return Smooth((IPathWorld)map, path);
     }
 
     internal static IReadOnlyList<PathPoint> Smooth(IPathWorld world, IReadOnlyList<PathPoint> path)
     {
-        ArgumentNullException.ThrowIfNull(world);
-        ArgumentNullException.ThrowIfNull(path);
-
         if (path.Count <= 2)
         {
             return path;
         }
 
-        var smoothed = new List<PathPoint>(path.Count) { path[0] };
+        List<PathPoint> smoothed = [with(path.Count), path[0]];
         int anchor = 0;
         while (anchor < path.Count - 1)
         {
@@ -63,6 +61,7 @@ public static class PathSmoother
         return HasLineOfSight((IPathWorld)map, from, to);
     }
 
+    /// <summary>A shortcut never crosses layers; stairs are the only way up or down.</summary>
     private static bool HasLineOfSight(IPathWorld world, PathPoint from, PathPoint to)
     {
         if (!world.Contains(from) || !world.Contains(to))
@@ -75,14 +74,11 @@ public static class PathSmoother
             return true;
         }
 
-        // A shortcut never crosses layers; stairs are the only way up or down.
         if (from.Layer != to.Layer)
         {
             return false;
         }
 
-        Grid grid = world.Grid;
-        int[] extraCosts = world.ExtraCosts;
         int layer = from.Layer;
         int x = from.X;
         int y = from.Y;
@@ -109,19 +105,7 @@ public static class PathSmoother
                 nextY += stepY;
             }
 
-            int direction = Grid.DirectionOf(nextX - x, nextY - y);
-            if (direction < 0)
-            {
-                return false;
-            }
-
-            int currentId = grid.Index(x, y, layer);
-            if (!grid.TryStep(currentId, x, y, layer, direction, out int neighborId))
-            {
-                return false;
-            }
-
-            if (extraCosts[neighborId] != 0)
+            if (!CanStep(world, layer, x, y, nextX, nextY))
             {
                 return false;
             }
@@ -131,5 +115,19 @@ public static class PathSmoother
         }
 
         return true;
+    }
+
+    private static bool CanStep(IPathWorld world, int layer, int x, int y, int nextX, int nextY)
+    {
+        int direction = Grid.DirectionOf(nextX - x, nextY - y);
+        if (direction < 0)
+        {
+            return false;
+        }
+
+        Grid grid = world.Grid;
+        int currentId = grid.Index(x, y, layer);
+        return grid.TryStep(currentId, x, y, layer, direction, out int neighborId)
+            && world.ExtraCosts[neighborId] == 0;
     }
 }

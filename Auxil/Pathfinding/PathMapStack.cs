@@ -59,12 +59,13 @@ public sealed class PathMapStack : IPathWorld
         {
             throw new ArgumentException(
                 $"The map is {map.Width}x{map.Height}, but the stack is {Width}x{Height}. All layers must match.",
-                nameof(map));
+                nameof(map)
+            );
         }
 
         int layerSize = Width * Height;
-        var cells = new byte[_cells.Length + layerSize];
-        var extraCosts = new int[_extraCosts.Length + layerSize];
+        byte[] cells = new byte[_cells.Length + layerSize];
+        int[] extraCosts = new int[_extraCosts.Length + layerSize];
         _cells.CopyTo(cells, 0);
         _extraCosts.CopyTo(extraCosts, 0);
         Array.Copy(map.Cells, 0, cells, _cells.Length, layerSize);
@@ -93,14 +94,17 @@ public sealed class PathMapStack : IPathWorld
         {
             throw new ArgumentOutOfRangeException(
                 nameof(lowerLayer),
-                $"Layer {lowerLayer} has no layer above it; the stack has {LayerCount} layer(s).");
+                $"Layer {lowerLayer} has no layer above it; the stack has {LayerCount} layer(s)."
+            );
         }
 
         int lower = IndexOf(x, y, lowerLayer);
         int upper = IndexOf(x, y, lowerLayer + 1);
         if (_cells[lower] == Grid.Blocked || _cells[upper] == Grid.Blocked)
         {
-            throw new InvalidOperationException("Both tiles must be walkable before they can be connected; unblock them first.");
+            throw new InvalidOperationException(
+                "Both tiles must be walkable before they can be connected; unblock them first."
+            );
         }
 
         _cells[lower] = Grid.Ramp;
@@ -131,7 +135,8 @@ public sealed class PathMapStack : IPathWorld
     /// <summary>Blocks or unblocks one tile on one layer.</summary>
     /// <param name="point">The tile to change.</param>
     /// <param name="blocked">True to block the tile, false to make it walkable again.</param>
-    public void SetBlocked(PathPoint point, bool blocked = true) => SetBlocked(point.X, point.Y, point.Layer, blocked);
+    public void SetBlocked(PathPoint point, bool blocked = true) =>
+        SetBlocked(point.X, point.Y, point.Layer, blocked);
 
     /// <summary>Blocks or unblocks one tile on one layer.</summary>
     /// <param name="x">Horizontal position.</param>
@@ -157,7 +162,8 @@ public sealed class PathMapStack : IPathWorld
     /// </summary>
     /// <param name="point">The tile to change.</param>
     /// <param name="extraCost">Extra cost per entry; must not be negative.</param>
-    public void SetExtraCost(PathPoint point, int extraCost) => SetExtraCost(point.X, point.Y, point.Layer, extraCost);
+    public void SetExtraCost(PathPoint point, int extraCost) =>
+        SetExtraCost(point.X, point.Y, point.Layer, extraCost);
 
     /// <summary>
     /// Sets an extra cost added when entering this tile, for slower terrain. Only the default
@@ -174,7 +180,9 @@ public sealed class PathMapStack : IPathWorld
         HasTerrainCosts = true;
     }
 
-    Grid IPathWorld.Grid => _grid ?? throw new InvalidOperationException("The stack has no layers; call AddLayer first.");
+    Grid IPathWorld.Grid =>
+        _grid
+        ?? throw new InvalidOperationException("The stack has no layers; call AddLayer first.");
 
     int[] IPathWorld.ExtraCosts => _extraCosts;
 
@@ -198,7 +206,8 @@ public sealed class PathMapStack : IPathWorld
         {
             throw new ArgumentOutOfRangeException(
                 nameof(x),
-                $"({x}, {y}, layer {layer}) is outside the {Width}x{Height} stack of {LayerCount} layer(s).");
+                $"({x}, {y}, layer {layer}) is outside the {Width}x{Height} stack of {LayerCount} layer(s)."
+            );
         }
 
         return layer * Width * Height + y * Width + x;

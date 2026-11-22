@@ -52,7 +52,13 @@ internal sealed class MultiGoalAStar : GridSearchBase
     /// <param name="reachedGoal">The goal that was reached.</param>
     /// <param name="cost">Cost of the route.</param>
     /// <param name="expanded">Number of tiles expanded.</param>
-    public bool FindPath(int start, IReadOnlyList<int> goals, out int reachedGoal, out int cost, out int expanded)
+    public bool FindPath(
+        int start,
+        IReadOnlyList<int> goals,
+        out int reachedGoal,
+        out int cost,
+        out int expanded
+    )
     {
         reachedGoal = -1;
         cost = 0;
@@ -187,7 +193,8 @@ internal sealed class MultiGoalAStar : GridSearchBase
                 continue;
             }
 
-            int newCost = currentCost + Grid.MoveCost[direction] + ExtraCostOf(extraCosts, neighborId);
+            int newCost =
+                currentCost + Grid.MoveCost[direction] + ExtraCostOf(extraCosts, neighborId);
             if (costGeneration[neighborId] == generation && newCost >= costToReach[neighborId])
             {
                 continue;
@@ -200,10 +207,14 @@ internal sealed class MultiGoalAStar : GridSearchBase
             int neighborX = x + Grid.OffX[direction];
             int neighborY = y + Grid.OffY[direction];
             int neighborZ = z + Grid.OffZ[direction];
-            _openList.Push(newCost + HeuristicToNearestGoal(neighborX, neighborY, neighborZ), neighborId);
+            _openList.Push(
+                newCost + HeuristicToNearestGoal(neighborX, neighborY, neighborZ),
+                neighborId
+            );
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int ExtraCostOf(int[]? extraCosts, int cell) => extraCosts is null ? 0 : extraCosts[cell];
+    private static int ExtraCostOf(int[]? extraCosts, int cell) =>
+        extraCosts is null ? 0 : extraCosts[cell];
 }

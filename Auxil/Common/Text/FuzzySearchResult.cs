@@ -6,8 +6,10 @@ public sealed record FuzzySearchResult
 {
     /// <summary>The raw match score.</summary>
     public int Score { get; init; }
+
     /// <summary>The maximum possible score for the matched word.</summary>
     public int MaxScore { get; init; }
+
     /// <summary>The matched word.</summary>
     public string Text { get; init; } = string.Empty;
 

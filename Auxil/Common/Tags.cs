@@ -3,9 +3,11 @@ namespace Auxil.Common;
 /// <summary>Represents a collection of tags that can behave as a set or as a multiset.</summary>
 /// <typeparam name="T">The tag type.</typeparam>
 [PublicAPI]
-public class Tags<T> where T : notnull
+public class Tags<T>
+    where T : notnull
 {
     private readonly Dictionary<T, int> _tagLookup = [];
+
     /// <summary>Whether duplicate tags accumulate a count instead of being rejected.</summary>
     public bool IsStackable { get; }
 

@@ -24,8 +24,8 @@ public sealed class Pathfinder : IDisposable
 {
     private readonly IPathWorld _world;
     private readonly IPathFinder _engine;
-    private readonly List<int> _idBuffer = new(1024);
-    private readonly List<int> _goalBuffer = new(16);
+    private readonly List<int> _idBuffer = [with(1024)];
+    private readonly List<int> _goalBuffer = [with(16)];
     private MultiGoalAStar? _multiGoalEngine;
     private bool _disposed;
 
@@ -33,7 +33,7 @@ public sealed class Pathfinder : IDisposable
     /// <param name="map">The map to search. It may change afterwards; the next query sees the change.</param>
     /// <param name="algorithm">The search engine. The default works everywhere and handles terrain costs.</param>
     public Pathfinder(PathMap map, PathfinderAlgorithm algorithm = PathfinderAlgorithm.Default)
-        : this(WorldOf(map), algorithm)
+        : this(IPathWorld.Require(map, nameof(map)), algorithm)
     {
         Map = map;
     }
@@ -41,8 +41,11 @@ public sealed class Pathfinder : IDisposable
     /// <summary>Creates a pathfinder for a stack of maps.</summary>
     /// <param name="stack">The stacked maps to search. Add all layers and stairs before this call.</param>
     /// <param name="algorithm">The search engine. The default works everywhere and handles terrain costs.</param>
-    public Pathfinder(PathMapStack stack, PathfinderAlgorithm algorithm = PathfinderAlgorithm.Default)
-        : this(WorldOf(stack), algorithm)
+    public Pathfinder(
+        PathMapStack stack,
+        PathfinderAlgorithm algorithm = PathfinderAlgorithm.Default
+    )
+        : this(IPathWorld.Require(stack, nameof(stack)), algorithm)
     {
         Stack = stack;
     }
@@ -117,7 +120,13 @@ public sealed class Pathfinder : IDisposable
         }
 
         bool found = _engine.FindPath(startId, goalId, out int cost, out int expanded);
-        result = BuildResult(goal, goalId, cost, expanded, found ? PathStatus.Found : PathStatus.NoPath);
+        result = BuildResult(
+            goal,
+            goalId,
+            cost,
+            expanded,
+            found ? PathStatus.Found : PathStatus.NoPath
+        );
         return found;
     }
 
@@ -140,7 +149,11 @@ public sealed class Pathfinder : IDisposable
     /// <param name="goals">The candidate targets.</param>
     /// <param name="result">The outcome, including the route when one was found.</param>
     /// <returns>True when a route to one of the targets was found.</returns>
-    public bool TryFindPathToNearest(PathPoint start, IEnumerable<PathPoint> goals, out PathResult result)
+    public bool TryFindPathToNearest(
+        PathPoint start,
+        IEnumerable<PathPoint> goals,
+        out PathResult result
+    )
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(goals);
@@ -173,7 +186,13 @@ public sealed class Pathfinder : IDisposable
         }
 
         MultiGoalAStar engine = EnsureMultiGoalEngine();
-        bool found = engine.FindPath(_world.ToIndex(start), _goalBuffer, out int reachedGoalId, out int cost, out int expanded);
+        bool found = engine.FindPath(
+            _world.ToIndex(start),
+            _goalBuffer,
+            out int reachedGoalId,
+            out int cost,
+            out int expanded
+        );
         if (!found)
         {
             result = PathResult.Failure(PathStatus.NoPath, start, expanded);
@@ -231,7 +250,13 @@ public sealed class Pathfinder : IDisposable
         _multiGoalEngine = null;
     }
 
-    internal PathResult BuildResult(PathPoint goal, int goalId, int cost, int expanded, PathStatus status)
+    internal PathResult BuildResult(
+        PathPoint goal,
+        int goalId,
+        int cost,
+        int expanded,
+        PathStatus status
+    )
     {
         if (status != PathStatus.Found)
         {
@@ -271,9 +296,9 @@ public sealed class Pathfinder : IDisposable
         return _multiGoalEngine;
     }
 
-    private IReadOnlyList<PathPoint> ConvertPath(List<int> ids)
+    private PathPoint[] ConvertPath(List<int> ids)
     {
-        var points = new PathPoint[ids.Count];
+        PathPoint[] points = new PathPoint[ids.Count];
         for (int i = 0; i < ids.Count; i++)
         {
             points[i] = _world.ToPoint(ids[i]);
@@ -284,26 +309,30 @@ public sealed class Pathfinder : IDisposable
 
     private static void ValidateAlgorithm(IPathWorld world, PathfinderAlgorithm algorithm)
     {
-        bool uniformTerrainOnly = algorithm is PathfinderAlgorithm.BitboardAStar
-            or PathfinderAlgorithm.JumpPointSearch
-            or PathfinderAlgorithm.JpsPlus
-            or PathfinderAlgorithm.HpaStar;
+        bool uniformTerrainOnly =
+            algorithm
+            is PathfinderAlgorithm.BitboardAStar
+                or PathfinderAlgorithm.JumpPointSearch
+                or PathfinderAlgorithm.JpsPlus
+                or PathfinderAlgorithm.HpaStar;
 
         if (uniformTerrainOnly && world.HasTerrainCosts)
         {
             throw new InvalidOperationException(
-                $"{algorithm} needs uniform terrain, but the map has tiles with extra cost. " +
-                $"Use {nameof(PathfinderAlgorithm.Default)}, or remove the costs.");
+                $"{algorithm} needs uniform terrain, but the map has tiles with extra cost. "
+                    + $"Use {nameof(PathfinderAlgorithm.Default)}, or remove the costs."
+            );
         }
 
-        bool singleLayerOnly = algorithm is PathfinderAlgorithm.JumpPointSearch
-            or PathfinderAlgorithm.JpsPlus;
+        bool singleLayerOnly =
+            algorithm is PathfinderAlgorithm.JumpPointSearch or PathfinderAlgorithm.JpsPlus;
 
         if (singleLayerOnly && world.LayerCount > 1)
         {
             throw new InvalidOperationException(
-                $"{algorithm} works on single-layer maps only. " +
-                $"Use {nameof(PathfinderAlgorithm.Default)} or {nameof(PathfinderAlgorithm.BitboardAStar)} for stacked maps.");
+                $"{algorithm} works on single-layer maps only. "
+                    + $"Use {nameof(PathfinderAlgorithm.Default)} or {nameof(PathfinderAlgorithm.BitboardAStar)} for stacked maps."
+            );
         }
     }
 
@@ -316,19 +345,11 @@ public sealed class Pathfinder : IDisposable
             PathfinderAlgorithm.JumpPointSearch => new JumpPointSearch(),
             PathfinderAlgorithm.JpsPlus => new JpsPlusSearch(),
             PathfinderAlgorithm.HpaStar => new HpaStar(16),
-            _ => throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, "Unknown algorithm."),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(algorithm),
+                algorithm,
+                "Unknown algorithm."
+            ),
         };
-    }
-
-    private static IPathWorld WorldOf(PathMap map)
-    {
-        ArgumentNullException.ThrowIfNull(map);
-        return map;
-    }
-
-    private static IPathWorld WorldOf(PathMapStack stack)
-    {
-        ArgumentNullException.ThrowIfNull(stack);
-        return stack;
     }
 }

@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Common.Text;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Text;
 
@@ -9,8 +9,18 @@ public class FuzzySearchResultTest
     [Fact]
     public void RecordSemantics_EqualResultsAreEqual()
     {
-        FuzzySearchResult a = new() { Score = 5, MaxScore = 10, Text = "hello" };
-        FuzzySearchResult b = new() { Score = 5, MaxScore = 10, Text = "hello" };
+        FuzzySearchResult a = new()
+        {
+            Score = 5,
+            MaxScore = 10,
+            Text = "hello",
+        };
+        FuzzySearchResult b = new()
+        {
+            Score = 5,
+            MaxScore = 10,
+            Text = "hello",
+        };
 
         a.ShouldBe(b);
         a.GetHashCode().ShouldBe(b.GetHashCode());
@@ -35,7 +45,12 @@ public class FuzzySearchResultTest
     [Fact]
     public void ToString_ContainsPercentageAndText()
     {
-        FuzzySearchResult result = new() { Score = 10, MaxScore = 10, Text = "hello" };
+        FuzzySearchResult result = new()
+        {
+            Score = 10,
+            MaxScore = 10,
+            Text = "hello",
+        };
 
         result.ToString().ShouldBe("(100%) hello");
     }

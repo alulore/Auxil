@@ -6,13 +6,15 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// A field/variable scope. Configuration only: modifiers, doc, annotations.
 /// </summary>
 [PublicAPI]
-public sealed class FieldScope<TLanguage, TParent> : DeclarationScope<TLanguage, FieldScope<TLanguage, TParent>, TParent>
+public sealed class FieldScope<TLanguage, TParent>
+    : DeclarationScope<TLanguage, FieldScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
     private readonly CodeField _field;
 
-    internal FieldScope(CodeBuilder<TLanguage> builder, CodeField field, TParent parent) : base(builder, field, parent)
+    internal FieldScope(CodeBuilder<TLanguage> builder, CodeField field, TParent parent)
+        : base(builder, field, parent)
     {
         _field = field;
     }

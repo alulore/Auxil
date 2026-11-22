@@ -29,8 +29,7 @@ internal sealed class Grid
     /// <summary>Cell value for a ramp, which allows vertical movement between layers.</summary>
     public const byte Ramp = 2;
 
-    // Direction 0 = E, 1 = NE, 2 = N, 3 = NW, 4 = W, 5 = SW, 6 = S, 7 = SE.
-    // Directions 8 and 9 are vertical (layer + 1 and layer - 1) and have no in-plane offset.
+    /// <summary>Direction offsets: 0 = E, 1 = NE, 2 = N, 3 = NW, 4 = W, 5 = SW, 6 = S, 7 = SE; directions 8 and 9 are vertical (layer + 1 and layer - 1) with no in-plane offset.</summary>
     public static readonly int[] OffX = [1, 1, 0, -1, -1, -1, 0, 1, 0, 0];
     public static readonly int[] OffY = [0, 1, 1, 1, 0, -1, -1, -1, 0, 0];
     public static readonly int[] OffZ = [0, 0, 0, 0, 0, 0, 0, 0, 1, -1];
@@ -46,17 +45,30 @@ internal sealed class Grid
 
     private static sbyte[] BuildDirectionByOffset()
     {
-        var map = new sbyte[9];
-        for (int i = 0; i < map.Length; i++) map[i] = -1;
+        sbyte[] map = new sbyte[9];
+        for (int i = 0; i < map.Length; i++)
+        {
+            map[i] = -1;
+        }
         for (int direction = 0; direction < InPlaneDirectionCount; direction++)
+        {
             map[(OffY[direction] + 1) * 3 + (OffX[direction] + 1)] = (sbyte)direction;
+        }
         return map;
     }
 
+    internal static Grid Empty { get; } = new(1, 1, 1, new byte[1]);
+
     public Grid(int width, int height, int layers, byte[] cells)
     {
-        if (width <= 0 || height <= 0 || layers <= 0) throw new ArgumentOutOfRangeException(nameof(width));
-        if (cells.Length != width * height * layers) throw new ArgumentException("Cell count mismatch.", nameof(cells));
+        if (width <= 0 || height <= 0 || layers <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width));
+        }
+        if (cells.Length != width * height * layers)
+        {
+            throw new ArgumentException("Cell count mismatch.", nameof(cells));
+        }
         Width = width;
         Height = height;
         Layers = layers;
@@ -102,7 +114,8 @@ internal sealed class Grid
 
     /// <summary>
     /// Tests the movement model for one step from (x, y, z) in <paramref name="direction"/>.
-    /// On success, <paramref name="neighborId"/> holds the target cell.
+    /// On success, <paramref name="neighborId"/> holds the target cell. A diagonal step needs at
+    /// least one walkable orthogonal neighbour.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryStep(int currentId, int x, int y, int z, int direction, out int neighborId)
@@ -111,26 +124,42 @@ internal sealed class Grid
 
         if (direction >= InPlaneDirectionCount)
         {
-            if (Layers == 1 || Cells[currentId] != Ramp) return false;
+            if (Layers == 1 || Cells[currentId] != Ramp)
+            {
+                return false;
+            }
             int neighborZ = z + OffZ[direction];
-            if ((uint)neighborZ >= (uint)Layers) return false;
+            if ((uint)neighborZ >= (uint)Layers)
+            {
+                return false;
+            }
             int verticalId = currentId + OffZ[direction] * LayerSize;
-            if (Cells[verticalId] != Ramp) return false;
+            if (Cells[verticalId] != Ramp)
+            {
+                return false;
+            }
             neighborId = verticalId;
             return true;
         }
 
         int neighborX = x + OffX[direction];
         int neighborY = y + OffY[direction];
-        if ((uint)neighborX >= (uint)Width || (uint)neighborY >= (uint)Height) return false;
+        if ((uint)neighborX >= (uint)Width || (uint)neighborY >= (uint)Height)
+        {
+            return false;
+        }
 
         int id = currentId + OffY[direction] * Width + OffX[direction];
-        if (Cells[id] == Blocked) return false;
+        if (Cells[id] == Blocked)
+        {
+            return false;
+        }
 
-        // A diagonal step needs at least one walkable orthogonal neighbour.
-        if ((direction & 1) != 0 &&
-            Cells[currentId + OffX[direction]] == Blocked &&
-            Cells[currentId + OffY[direction] * Width] == Blocked)
+        if (
+            (direction & 1) != 0
+            && Cells[currentId + OffX[direction]] == Blocked
+            && Cells[currentId + OffY[direction] * Width] == Blocked
+        )
         {
             return false;
         }
@@ -163,7 +192,9 @@ internal sealed class Grid
         }
 
         int dz = ZOf(toId) - ZOf(fromId);
-        return dz > 0 ? 8 : dz < 0 ? 9 : -1;
+        return dz > 0 ? 8
+            : dz < 0 ? 9
+            : -1;
     }
 
     /// <summary>Octile distance: the exact cost of a straight-then-diagonal walk between two offsets.</summary>
@@ -177,10 +208,13 @@ internal sealed class Grid
 
     /// <summary>Admissible, consistent heuristic between two cells (octile plus 10 per layer).</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Heuristic(int fromX, int fromY, int fromZ, int toX, int toY, int toZ)
+    public static int Heuristic(int fromX, int fromY, int fromZ, int toX, int toY, int toZ)
     {
         int layerDistance = fromZ - toZ;
-        if (layerDistance < 0) layerDistance = -layerDistance;
+        if (layerDistance < 0)
+        {
+            layerDistance = -layerDistance;
+        }
         return Octile(fromX - toX, fromY - toY) + 10 * layerDistance;
     }
 }

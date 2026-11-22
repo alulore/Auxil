@@ -31,7 +31,7 @@ public sealed class RenderContext
     public string LanguageName => Profile.Name;
 
     /// <summary>The language's shape bundle.</summary>
-    public Shapes Shapes => Profile.Shapes;
+    public SyntaxShapes Shapes => Profile.Shapes;
 
     /// <summary>Warnings collected during rendering.</summary>
     public List<string> Warnings { get; }
@@ -40,13 +40,14 @@ public sealed class RenderContext
     /// The shape context for this render, built once and reused: the
     /// writer, syntax, warning sink, and the statement-renderer flow.
     /// </summary>
-    public ShapeContext Shape => field ??= new ShapeContext
-    {
-        Writer = Writer,
-        Syntax = Syntax,
-        Shapes = Shapes,
-        LanguageName = LanguageName,
-        Warnings = Warnings,
-        RenderStatements = statements => StatementRenderer.RenderStatements(this, statements)
-    };
+    public ShapeContext Shape =>
+        field ??= new ShapeContext
+        {
+            Writer = Writer,
+            Syntax = Syntax,
+            Shapes = Shapes,
+            LanguageName = LanguageName,
+            Warnings = Warnings,
+            RenderStatements = statements => StatementRenderer.RenderStatements(this, statements),
+        };
 }

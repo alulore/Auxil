@@ -16,8 +16,8 @@ namespace Auxil.Pathfinding.Engine;
 /// </summary>
 internal abstract class GridSearchBase : IPathFinder
 {
-    protected Grid Grid = null!;
-    protected byte[] Cells = null!;
+    protected Grid Grid = Grid.Empty;
+    protected byte[] Cells = [];
 
     protected int Width;
     protected int Height;
@@ -25,16 +25,16 @@ internal abstract class GridSearchBase : IPathFinder
     protected int NodeCount;
 
     /// <summary>Best known cost from the search start to each node (the A* g score).</summary>
-    protected int[] CostToReach = null!;
+    protected int[] CostToReach = [];
 
     /// <summary>Search generation that last wrote <see cref="CostToReach"/> for each node.</summary>
-    protected int[] CostGeneration = null!;
+    protected int[] CostGeneration = [];
 
     /// <summary>Search generation that expanded (closed) each node.</summary>
-    protected int[] ClosedGeneration = null!;
+    protected int[] ClosedGeneration = [];
 
     /// <summary>Expansion parent per node, used by <see cref="CollectPath"/>.</summary>
-    protected int[] Parent = null!;
+    protected int[] Parent = [];
 
     /// <summary>Monotone search counter. Arrays are stamped with it instead of being cleared.</summary>
     private int _searchGeneration;
@@ -99,10 +99,10 @@ internal abstract class GridSearchBase : IPathFinder
     /// <summary>Releases the per-node arrays. Subclasses release their own buffers as well.</summary>
     protected void ReleaseSearchState()
     {
-        CostToReach = null!;
-        CostGeneration = null!;
-        ClosedGeneration = null!;
-        Parent = null!;
+        CostToReach = [];
+        CostGeneration = [];
+        ClosedGeneration = [];
+        Parent = [];
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,7 +122,10 @@ internal abstract class GridSearchBase : IPathFinder
     public void CollectPath(int goal, List<int> path)
     {
         path.Clear();
-        for (int node = goal; node != -1; node = Parent[node]) path.Add(node);
+        for (int node = goal; node != -1; node = Parent[node])
+        {
+            path.Add(node);
+        }
         path.Reverse();
     }
 }

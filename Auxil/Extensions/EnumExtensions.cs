@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Reflection;
 
 namespace Auxil.Extensions;
@@ -7,21 +8,29 @@ namespace Auxil.Extensions;
 [PublicAPI]
 public static class EnumExtensions
 {
-    private static readonly ConcurrentDictionary<Type, IReadOnlyDictionary<string, string>> StringValueCache = new();
+    private static readonly ConcurrentDictionary<
+        Type,
+        IReadOnlyDictionary<string, string>
+    > StringValueCache = new();
 
     /// <summary>Returns the <see cref="StringValueAttribute"/> value for the enum member, or an empty string when absent.</summary>
     /// <typeparam name="TEnum">The enum type.</typeparam>
     /// <param name="enum">The enum member.</param>
-    public static string GetStringValue<TEnum>(this TEnum @enum) where TEnum : struct, Enum
+    public static string GetStringValue<TEnum>(this TEnum @enum)
+        where TEnum : struct, Enum
     {
-        IReadOnlyDictionary<string, string> stringValues = StringValueCache.GetOrAdd(typeof(TEnum), BuildStringValueMap);
+        IReadOnlyDictionary<string, string> stringValues = StringValueCache.GetOrAdd(
+            typeof(TEnum),
+            BuildStringValueMap
+        );
 
         return stringValues.TryGetValue(@enum.ToString(), out string? value) ? value : string.Empty;
     }
 
     /// <summary>Returns the underlying <see cref="int"/> value of the enum member.</summary>
     /// <param name="enum">The enum member.</param>
-    public static int ToInt(this Enum @enum) => Convert.ToInt32(@enum);
+    public static int ToInt(this Enum @enum) =>
+        Convert.ToInt32(@enum, CultureInfo.InvariantCulture);
 
     private static IReadOnlyDictionary<string, string> BuildStringValueMap(Type enumType)
     {

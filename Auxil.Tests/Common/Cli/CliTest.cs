@@ -1,18 +1,15 @@
-using JetBrains.Annotations;
 using Auxil.Common.Cli;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Cli;
 
-[TestSubject(typeof(Auxil.Common.Cli.Cli))]
+[TestSubject(typeof(CliCommand))]
 public class CliTest
 {
     [Fact]
     public void Execute_ReturnsZeroExitCodeForSuccessfulCommand()
     {
-        CliResult result = new Auxil.Common.Cli.Cli()
-            .Call("dotnet")
-            .SetArguments("--version")
-            .Execute();
+        CliResult result = new CliCommand().Call("dotnet").SetArguments("--version").Execute();
 
         result.ExitCode.ShouldBe(0);
         result.Success.ShouldBeTrue();
@@ -22,7 +19,7 @@ public class CliTest
     [Fact]
     public void Execute_ReturnsNonZeroExitCodeForFailingCommand()
     {
-        CliResult result = new Auxil.Common.Cli.Cli()
+        CliResult result = new CliCommand()
             .Call("dotnet")
             .SetArguments("definitely-not-a-real-command-xyz")
             .Execute();
@@ -34,63 +31,51 @@ public class CliTest
     [Fact]
     public async Task ExecuteAsync_ReturnsSameResultsAsSync()
     {
-        CliResult result = await new Auxil.Common.Cli.Cli()
-            .Call("dotnet")
-            .SetArguments("--version")
-            .ExecuteAsync();
+        CliResult result = await Echo("hello")
+            .ExecuteAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.ExitCode.ShouldBe(0);
-        result.Output.ShouldNotBeEmpty();
+        result.Output.ShouldContain("hello");
     }
 
     [Fact]
     public void Execute_CapturesErrorOutput()
     {
-        CliResult result = new Auxil.Common.Cli.Cli()
-            .Call("dotnet")
-            .SetArguments("definitely-not-a-real-command-xyz")
-            .Execute();
+        CliResult result = EchoToError("oops").Execute();
 
-        result.ErrorOutput.ShouldNotBeEmpty();
+        result.ErrorOutput.ShouldContain("oops");
     }
 
     [Fact]
     public void Execute_RaisesOutputEvent()
     {
-        Auxil.Common.Cli.Cli cli = new Auxil.Common.Cli.Cli()
-            .Call("dotnet")
-            .SetArguments("--version");
+        CliCommand cli = Echo("hello");
 
-        int outputEvents = 0;
-        cli.OutputReceived += (_, _) => outputEvents++;
+        List<string> lines = [];
+        cli.OutputReceived += (_, e) => lines.Add(e.Line);
 
         cli.Execute();
 
-        outputEvents.ShouldBeGreaterThan(0);
+        lines.ShouldContain(line => line.Contains("hello", StringComparison.Ordinal));
     }
 
     [Fact]
     public void Execute_RaisesErrorEvent()
     {
-        Auxil.Common.Cli.Cli cli = new Auxil.Common.Cli.Cli()
-            .Call("dotnet")
-            .SetArguments("definitely-not-a-real-command-xyz");
+        CliCommand cli = EchoToError("oops");
 
-        int errorEvents = 0;
-        cli.ErrorOutputReceived += (_, _) => errorEvents++;
+        List<string> lines = [];
+        cli.ErrorOutputReceived += (_, e) => lines.Add(e.Line);
 
         cli.Execute();
 
-        errorEvents.ShouldBeGreaterThan(0);
+        lines.ShouldContain(line => line.Contains("oops", StringComparison.Ordinal));
     }
 
     [Fact]
     public void SetArguments_WithParamsUsesArgumentList()
     {
-        CliResult result = new Auxil.Common.Cli.Cli()
-            .Call("dotnet")
-            .SetArguments("--version")
-            .Execute();
+        CliResult result = new CliCommand().Call("dotnet").SetArguments("--version").Execute();
 
         result.ExitCode.ShouldBe(0);
         result.Output.ShouldNotBeEmpty();
@@ -99,15 +84,7 @@ public class CliTest
     [Fact]
     public void SetArguments_WithQuotedArgumentPreservesSpaces()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
-        CliResult result = new Auxil.Common.Cli.Cli()
-            .Call("cmd")
-            .SetArguments("/c", "echo", "hello world")
-            .Execute();
+        CliResult result = Echo("hello world").Execute();
 
         result.ExitCode.ShouldBe(0);
         result.Output.ShouldContain("hello world");
@@ -116,7 +93,7 @@ public class CliTest
     [Fact]
     public void SetWorkingDirectory_IsApplied()
     {
-        CliResult result = new Auxil.Common.Cli.Cli()
+        CliResult result = new CliCommand()
             .Call("dotnet")
             .SetArguments("--version")
             .SetWorkingDirectory(Path.GetTempPath())
@@ -128,14 +105,7 @@ public class CliTest
     [Fact]
     public void SetEnvironmentVariable_IsPassedToProcess()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
-        CliResult result = new Auxil.Common.Cli.Cli()
-            .Call("cmd")
-            .SetArguments("/c", "echo", "%UPHORIC_TEST_VAR%")
+        CliResult result = PrintVariable("UPHORIC_TEST_VAR")
             .SetEnvironmentVariable("UPHORIC_TEST_VAR", "hello")
             .Execute();
 
@@ -144,57 +114,30 @@ public class CliTest
     }
 
     [Fact]
-    public void Execute_ThrowsTimeoutExceptionWhenProcessExceedsTimeout()
+    public async Task ExecuteAsync_ThrowsTimeoutExceptionWhenProcessExceedsTimeout()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
-
-        Should.Throw<TimeoutException>(() => new Auxil.Common.Cli.Cli()
-            .Call("ping")
-            .SetArguments("-n", "5", "127.0.0.1")
-            .ExecuteAsync(timeout: TimeSpan.FromSeconds(1))
-            .GetAwaiter()
-            .GetResult());
+        await Should.ThrowAsync<TimeoutException>(() =>
+            LongRunning()
+                .ExecuteAsync(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
-    public void ExecuteAsync_ThrowsOperationCanceledExceptionWhenCancelled()
+    public async Task ExecuteAsync_ThrowsOperationCanceledExceptionWhenCancelled()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
+        using CancellationTokenSource cancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        await cancellation.CancelAsync();
 
-        using CancellationTokenSource cancellation = new();
-        cancellation.CancelAfter(TimeSpan.FromMilliseconds(300));
-
-        Should.Throw<OperationCanceledException>(() => new Auxil.Common.Cli.Cli()
-            .Call("ping")
-            .SetArguments("-n", "5", "127.0.0.1")
-            .ExecuteAsync(cancellation.Token, TimeSpan.FromSeconds(10))
-            .GetAwaiter()
-            .GetResult());
-    }
-
-    [Fact]
-    public void FluentSetters_ThrowOnNull()
-    {
-        Auxil.Common.Cli.Cli cli = new();
-
-        Should.Throw<ArgumentNullException>(() => cli.Call(null!));
-        Should.Throw<ArgumentNullException>(() => cli.SetArguments((string)null!));
-        Should.Throw<ArgumentNullException>(() => cli.SetArguments((string[])null!));
-        Should.Throw<ArgumentNullException>(() => cli.SetWorkingDirectory(null!));
-        Should.Throw<ArgumentNullException>(() => cli.SetEnvironmentVariable(null!, "value"));
-        Should.Throw<ArgumentNullException>(() => cli.SetEnvironmentVariable("name", null!));
+        await Should.ThrowAsync<OperationCanceledException>(() =>
+            LongRunning().ExecuteAsync(TimeSpan.FromSeconds(10), cancellation.Token)
+        );
     }
 
     [Fact]
     public void FluentSetters_UpdateProperties()
     {
-        Auxil.Common.Cli.Cli cli = new();
+        CliCommand cli = new();
 
         cli.SetCreateNoWindow(false).CreateNoWindow.ShouldBeFalse();
         cli.SetUseShellExecute(true).UseShellExecute.ShouldBeTrue();
@@ -202,4 +145,24 @@ public class CliTest
         cli.SetRedirectStandardOutput(false).RedirectStandardOutput.ShouldBeFalse();
         cli.SetWorkingDirectory("C:\\temp").WorkingDirectory.ShouldBe("C:\\temp");
     }
+
+    private static CliCommand Echo(string text) =>
+        OperatingSystem.IsWindows()
+            ? new CliCommand().Call("cmd").SetArguments("/c", "echo", text)
+            : new CliCommand().Call("echo").SetArguments(text);
+
+    private static CliCommand EchoToError(string text) =>
+        OperatingSystem.IsWindows()
+            ? new CliCommand().Call("cmd").SetArguments("/c", $"echo {text} 1>&2")
+            : new CliCommand().Call("sh").SetArguments("-c", $"echo {text} >&2");
+
+    private static CliCommand PrintVariable(string name) =>
+        OperatingSystem.IsWindows()
+            ? new CliCommand().Call("cmd").SetArguments("/c", "echo", $"%{name}%")
+            : new CliCommand().Call("sh").SetArguments("-c", $"echo \"${name}\"");
+
+    private static CliCommand LongRunning() =>
+        OperatingSystem.IsWindows()
+            ? new CliCommand().Call("ping").SetArguments("-n", "5", "127.0.0.1")
+            : new CliCommand().Call("sleep").SetArguments("5");
 }

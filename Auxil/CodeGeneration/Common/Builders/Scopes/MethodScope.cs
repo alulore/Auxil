@@ -6,11 +6,13 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// A method scope. Parameters, return type, generics, body.
 /// </summary>
 [PublicAPI]
-public sealed class MethodScope<TLanguage, TParent> : BodyScope<TLanguage, MethodScope<TLanguage, TParent>, TParent>
+public sealed class MethodScope<TLanguage, TParent>
+    : BodyScope<TLanguage, MethodScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
-    internal MethodScope(CodeBuilder<TLanguage> builder, CodeMethod method, TParent parent) : base(builder, method, parent)
+    internal MethodScope(CodeBuilder<TLanguage> builder, CodeMethod method, TParent parent)
+        : base(builder, method, parent)
     {
         MethodNode = method;
     }

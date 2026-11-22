@@ -10,5 +10,5 @@ public enum MatchArmStyle
     CaseWithBreak,
 
     /// <summary>Bare pattern followed by the header terminator, e.g. GDScript match.</summary>
-    Colon
+    Colon,
 }

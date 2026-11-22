@@ -8,10 +8,13 @@ namespace Auxil.Tests.Pathfinding;
 /// </summary>
 public class PathfinderPoolTests
 {
+    private const int OctileLeg = 48;
+    private const int ThroughTheOnlyCrossing = OctileLeg + OctileLeg;
+
     [Fact]
     public async Task ParallelQueries_MatchSequentialResults()
     {
-        var map = PathMap.FromRows([
+        PathMap map = PathMap.FromRows([
             "..........",
             "..###.....",
             "..#.......",
@@ -31,32 +34,27 @@ public class PathfinderPoolTests
             (new(9, 7), new(0, 0)),
         ];
 
-        var expected = new List<PathResult>();
-        using (var finder = new Pathfinder(map))
-        {
-            finder.Options.Smooth = false;
-            foreach ((PathPoint start, PathPoint goal) in queries)
-            {
-                expected.Add(finder.FindPath(start, goal));
-            }
-        }
+        using Pathfinder finder = new(map);
+        finder.Options.Smooth = false;
+        (PathStatus Status, int Cost)[] expected = queries
+            .Select(q => finder.FindPath(q.Start, q.Goal))
+            .Select(r => (r.Status, r.Cost))
+            .ToArray();
 
-        using var pool = new PathfinderPool(map, maxConcurrency: 4);
-        Task<PathResult>[] tasks = queries.Select(q => pool.FindPathAsync(q.Start, q.Goal)).ToArray();
+        using PathfinderPool pool = new(map, maxConcurrency: 4);
+        Task<PathResult>[] tasks = queries
+            .Select(q => pool.FindPathAsync(q.Start, q.Goal, TestContext.Current.CancellationToken))
+            .ToArray();
         PathResult[] results = await Task.WhenAll(tasks);
 
-        for (int i = 0; i < queries.Length; i++)
-        {
-            results[i].Status.ShouldBe(expected[i].Status);
-            results[i].Cost.ShouldBe(expected[i].Cost);
-        }
+        results.Select(r => (r.Status, r.Cost)).ShouldBe(expected);
     }
 
     [Fact]
     public void Pool_ExposesItsMapAndAlgorithm()
     {
-        var map = new PathMap(5, 5);
-        using var pool = new PathfinderPool(map);
+        PathMap map = new(5, 5);
+        using PathfinderPool pool = new(map);
 
         pool.Map.ShouldBeSameAs(map);
         pool.Stack.ShouldBeNull();
@@ -66,13 +64,18 @@ public class PathfinderPoolTests
     [Fact]
     public async Task ManyQueries_AllSucceed()
     {
-        using var pool = new PathfinderPool(new PathMap(100, 100), maxConcurrency: 8);
+        using PathfinderPool pool = new(new PathMap(100, 100), maxConcurrency: 8);
 
-        Task<PathResult>[] tasks = new Task<PathResult>[64];
-        for (int i = 0; i < tasks.Length; i++)
-        {
-            tasks[i] = pool.FindPathAsync(new PathPoint(0, i), new PathPoint(99, 99 - i));
-        }
+        Task<PathResult>[] tasks = Enumerable
+            .Range(0, 64)
+            .Select(i =>
+                pool.FindPathAsync(
+                    new PathPoint(0, i),
+                    new PathPoint(99, 99 - i),
+                    TestContext.Current.CancellationToken
+                )
+            )
+            .ToArray();
 
         PathResult[] results = await Task.WhenAll(tasks);
         results.ShouldAllBe(r => r.Found);
@@ -81,39 +84,58 @@ public class PathfinderPoolTests
     [Fact]
     public async Task CancelledBeforeStart_Throws()
     {
-        using var pool = new PathfinderPool(new PathMap(5, 5), maxConcurrency: 1);
-        using var cancellation = new CancellationTokenSource();
-        cancellation.Cancel();
+        using PathfinderPool pool = new(new PathMap(5, 5), maxConcurrency: 1);
+        using CancellationTokenSource cancellation = new();
+        await cancellation.CancelAsync();
 
-        await Should.ThrowAsync<OperationCanceledException>(
-            () => pool.FindPathAsync(new PathPoint(0, 0), new PathPoint(4, 4), cancellation.Token));
+        await Should.ThrowAsync<OperationCanceledException>(() =>
+            pool.FindPathAsync(new PathPoint(0, 0), new PathPoint(4, 4), cancellation.Token)
+        );
     }
 
     [Fact]
     public async Task DisposedPool_Throws()
     {
-        var pool = new PathfinderPool(new PathMap(5, 5));
+        PathfinderPool pool = new(new PathMap(5, 5));
         pool.Dispose();
 
-        await Should.ThrowAsync<ObjectDisposedException>(
-            () => pool.FindPathAsync(new PathPoint(0, 0), new PathPoint(4, 4)));
+        await Should.ThrowAsync<ObjectDisposedException>(() =>
+            pool.FindPathAsync(
+                new PathPoint(0, 0),
+                new PathPoint(4, 4),
+                TestContext.Current.CancellationToken
+            )
+        );
+    }
+
+    [Fact]
+    public async Task Pool_WithUnboundedConcurrency_Works()
+    {
+        PathMap map = PathMap.FromRows(["..#..", "..#..", "..#..", "..#..", "....."]);
+        using PathfinderPool pool = new(map, maxConcurrency: int.MaxValue);
+
+        PathResult result = await pool.FindPathAsync(
+            new PathPoint(0, 0),
+            new PathPoint(4, 0),
+            TestContext.Current.CancellationToken
+        );
+
+        result.Found.ShouldBeTrue();
     }
 
     [Fact]
     public async Task Pool_WithAUniformAlgorithm_Works()
     {
-        var map = PathMap.FromRows([
-            "..#..",
-            "..#..",
-            "..#..",
-            "..#..",
-            ".....",
-        ]);
-        using var pool = new PathfinderPool(map, PathfinderAlgorithm.JpsPlus, maxConcurrency: 2);
+        PathMap map = PathMap.FromRows(["..#..", "..#..", "..#..", "..#..", "....."]);
+        using PathfinderPool pool = new(map, PathfinderAlgorithm.JpsPlus, maxConcurrency: 2);
 
-        PathResult result = await pool.FindPathAsync(new PathPoint(0, 0), new PathPoint(4, 0));
+        PathResult result = await pool.FindPathAsync(
+            new PathPoint(0, 0),
+            new PathPoint(4, 0),
+            TestContext.Current.CancellationToken
+        );
 
         result.Found.ShouldBeTrue();
-        result.Cost.ShouldBe(96);
+        result.Cost.ShouldBe(ThroughTheOnlyCrossing);
     }
 }

@@ -8,7 +8,7 @@ on:
     branches: [production]
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: '11.0.x'
   GITHUB_PACKAGES_URL: https://nuget.pkg.github.com/alulore/index.json
   PACKAGE_NAME: Auxil
 

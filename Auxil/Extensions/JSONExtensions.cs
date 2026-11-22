@@ -39,6 +39,7 @@ public static class JsonExtensions
         return TryGetValue(target, out T? value) ? value : defaultValue;
     }
 
+    /// <summary>Reads a node as <typeparamref name="T"/>; a <see cref="JsonValue"/> backed by a null string reports success with null text at runtime despite the NotNullWhen annotation on <c>TryGetValue&lt;string&gt;</c>, so null text is handled explicitly.</summary>
     private static bool TryGetValue<T>(JsonNode? node, out T? value)
     {
         value = default;
@@ -54,9 +55,6 @@ public static class JsonExtensions
             return true;
         }
 
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        // A JsonValue backed by a null string returns true with a null text at runtime,
-        // despite TryGetValue<string>'s NotNullWhen annotation — covered by tests.
         if (!jsonValue.TryGetValue(out string? text) || text is null)
         {
             return false;

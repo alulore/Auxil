@@ -36,7 +36,7 @@ public static class FileUtility
             string relativePath = Path.GetRelativePath(source, file);
             string destinationFile = Path.Combine(destination, relativePath);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(destinationFile) ?? destination);
             File.Copy(file, destinationFile, overwrite);
         }
 
@@ -49,8 +49,12 @@ public static class FileUtility
     /// <param name="overwrite">Whether existing files in the destination may be overwritten.</param>
     /// <param name="cancellationToken">Cancels the copy operation.</param>
     /// <returns><c>false</c> when the source is missing or the destination exists without overwrite; otherwise <c>true</c>.</returns>
-    public static async Task<bool> CopyDirectoryAsync(string source, string destination, bool overwrite = false,
-        CancellationToken cancellationToken = default)
+    public static async Task<bool> CopyDirectoryAsync(
+        string source,
+        string destination,
+        bool overwrite = false,
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(destination);
@@ -80,13 +84,20 @@ public static class FileUtility
             string relativePath = Path.GetRelativePath(source, file);
             string destinationFile = Path.Combine(destination, relativePath);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(destinationFile) ?? destination);
 
             await using FileStream sourceStream = File.OpenRead(file);
             FileMode mode = overwrite ? FileMode.Create : FileMode.CreateNew;
-            await using FileStream destinationStream = new(destinationFile, mode, FileAccess.Write, FileShare.None);
+            await using FileStream destinationStream = new(
+                destinationFile,
+                mode,
+                FileAccess.Write,
+                FileShare.None
+            );
 
-            await sourceStream.CopyToAsync(destinationStream, cancellationToken).ConfigureAwait(false);
+            await sourceStream
+                .CopyToAsync(destinationStream, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         return true;
@@ -96,16 +107,24 @@ public static class FileUtility
     {
         string relativePath = Path.GetRelativePath(source, destination);
         bool isSamePath = relativePath == ".";
-        bool isDescendant = relativePath != ".."
-            && !relativePath.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
-            && !relativePath.StartsWith(".." + Path.AltDirectorySeparatorChar, StringComparison.Ordinal)
+        bool isDescendant =
+            relativePath != ".."
+            && !relativePath.StartsWith(
+                ".." + Path.DirectorySeparatorChar,
+                StringComparison.Ordinal
+            )
+            && !relativePath.StartsWith(
+                ".." + Path.AltDirectorySeparatorChar,
+                StringComparison.Ordinal
+            )
             && !Path.IsPathRooted(relativePath);
 
         if (isSamePath || isDescendant)
         {
             throw new ArgumentException(
                 "The destination must not be the source directory or a descendant of it.",
-                nameof(destination));
+                nameof(destination)
+            );
         }
     }
 }

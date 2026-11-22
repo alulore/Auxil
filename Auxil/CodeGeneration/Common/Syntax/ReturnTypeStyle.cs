@@ -13,5 +13,5 @@ public enum ReturnTypeStyle
     ArrowAfterParens,
 
     /// <summary>C#/Java: string Foo()</summary>
-    BeforeName
+    BeforeName,
 }

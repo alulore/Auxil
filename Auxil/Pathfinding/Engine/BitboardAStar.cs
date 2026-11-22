@@ -10,7 +10,7 @@ namespace Auxil.Pathfinding.Engine;
 /// </summary>
 internal sealed class BitboardAStar : GridSearchBase
 {
-    private ushort[] _moveMasks = null!;
+    private ushort[] _moveMasks = [];
     private DialBucketsLazy _openList;
 
     public override void Init(Grid grid)
@@ -23,7 +23,7 @@ internal sealed class BitboardAStar : GridSearchBase
     public override void Release()
     {
         ReleaseSearchState();
-        _moveMasks = null!;
+        _moveMasks = [];
         _openList = default;
     }
 
@@ -35,7 +35,10 @@ internal sealed class BitboardAStar : GridSearchBase
 
         for (int cell = 0; cell < NodeCount; cell++)
         {
-            if (Cells[cell] == Grid.Blocked) continue;
+            if (Cells[cell] == Grid.Blocked)
+            {
+                continue;
+            }
 
             int x = Grid.XOf(cell);
             int y = Grid.YOf(cell);
@@ -43,7 +46,10 @@ internal sealed class BitboardAStar : GridSearchBase
             int mask = 0;
             for (int direction = 0; direction < directionCount; direction++)
             {
-                if (Grid.TryStep(cell, x, y, z, direction, out _)) mask |= 1 << direction;
+                if (Grid.TryStep(cell, x, y, z, direction, out _))
+                {
+                    mask |= 1 << direction;
+                }
             }
             _moveMasks[cell] = (ushort)mask;
         }
@@ -53,7 +59,10 @@ internal sealed class BitboardAStar : GridSearchBase
     {
         cost = 0;
         expanded = 0;
-        if (start == goal) return true;
+        if (start == goal)
+        {
+            return true;
+        }
 
         int generation = StartSearch(start, goal);
 
@@ -67,7 +76,10 @@ internal sealed class BitboardAStar : GridSearchBase
         while (_openList.Count > 0)
         {
             int currentId = _openList.Pop(out _);
-            if (closed[currentId] == generation) continue;
+            if (closed[currentId] == generation)
+            {
+                continue;
+            }
             closed[currentId] = generation;
             expandedCount++;
 
@@ -107,10 +119,16 @@ internal sealed class BitboardAStar : GridSearchBase
             mask &= mask - 1;
 
             int neighborId = Grid.NeighborId(currentId, direction);
-            if (closed[neighborId] == generation) continue;
+            if (closed[neighborId] == generation)
+            {
+                continue;
+            }
 
             int newCost = currentCost + Grid.MoveCost[direction];
-            if (costGeneration[neighborId] == generation && newCost >= costToReach[neighborId]) continue;
+            if (costGeneration[neighborId] == generation && newCost >= costToReach[neighborId])
+            {
+                continue;
+            }
 
             costToReach[neighborId] = newCost;
             costGeneration[neighborId] = generation;
@@ -119,7 +137,12 @@ internal sealed class BitboardAStar : GridSearchBase
             int neighborX = x + Grid.OffX[direction];
             int neighborY = y + Grid.OffY[direction];
             int neighborZ = z + Grid.OffZ[direction];
-            _openList.Push(newCost + Grid.Octile(neighborX - goalX, neighborY - goalY) + 10 * Math.Abs(neighborZ - goalZ), neighborId);
+            _openList.Push(
+                newCost
+                    + Grid.Octile(neighborX - goalX, neighborY - goalY)
+                    + 10 * Math.Abs(neighborZ - goalZ),
+                neighborId
+            );
         }
     }
 }

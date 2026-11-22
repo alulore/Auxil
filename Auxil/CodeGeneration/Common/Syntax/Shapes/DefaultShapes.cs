@@ -8,10 +8,17 @@ namespace Auxil.CodeGeneration.Common.Syntax.Shapes;
 [PublicAPI]
 public static class DefaultShapes
 {
-    // ---- Field ----
-
     /// <summary>Shapes a field declaration (the shared default).</summary>
-    public static string Field(ShapeContext ctx, string name, CodeType? type, bool nullable, string? defaultValue, bool isConst, string keyword, bool isInterfaceMember)
+    public static string Field(
+        ShapeContext ctx,
+        string name,
+        CodeType? type,
+        bool nullable,
+        string? defaultValue,
+        bool isConst,
+        string keyword,
+        bool isInterfaceMember
+    )
     {
         if (isInterfaceMember)
         {
@@ -19,10 +26,20 @@ public static class DefaultShapes
             {
                 if (defaultValue is not null)
                 {
-                    ctx.Warnings.Add($"Default value on interface property '{name}' is not supported in {ctx.LanguageName}; skipped.");
+                    ctx.Warnings.Add(
+                        $"Default value on interface property '{name}' is not supported in {ctx.LanguageName}; skipped."
+                    );
                 }
 
-                return BuildFieldDeclaration(ctx, name, type, nullable, null, isConst: false, keyword: string.Empty);
+                return BuildFieldDeclaration(
+                    ctx,
+                    name,
+                    type,
+                    nullable,
+                    null,
+                    isConst: false,
+                    keyword: string.Empty
+                );
             }
 
             return BuildAutoAccessors(ctx, name, type, nullable, hasGetter: true, hasSetter: true);
@@ -31,7 +48,15 @@ public static class DefaultShapes
         return BuildFieldDeclaration(ctx, name, type, nullable, defaultValue, isConst, keyword);
     }
 
-    private static string BuildFieldDeclaration(ShapeContext ctx, string name, CodeType? type, bool nullable, string? defaultValue, bool isConst, string keyword)
+    private static string BuildFieldDeclaration(
+        ShapeContext ctx,
+        string name,
+        CodeType? type,
+        bool nullable,
+        string? defaultValue,
+        bool isConst,
+        string keyword
+    )
     {
         List<string> parts = [];
 
@@ -84,7 +109,14 @@ public static class DefaultShapes
         return string.Join(" ", parts);
     }
 
-    private static string BuildAutoAccessors(ShapeContext ctx, string name, CodeType? type, bool nullable, bool hasGetter, bool hasSetter)
+    private static string BuildAutoAccessors(
+        ShapeContext ctx,
+        string name,
+        CodeType? type,
+        bool nullable,
+        bool hasGetter,
+        bool hasSetter
+    )
     {
         string line = name;
         if (type is not null)
@@ -106,14 +138,26 @@ public static class DefaultShapes
         return $"{line} {{ {string.Join("; ", accessors)}; }}";
     }
 
-    // ---- Signature ----
-
     /// <summary>Shapes a method/constructor/function signature (the shared default).</summary>
-    public static string Signature(ShapeContext ctx, SignatureKind kind, string name, List<CodeParameter> parameters, List<CodeGenericParameter> generics, CodeType? returnType, string className, bool interfaceMode)
+    public static string Signature(
+        ShapeContext ctx,
+        SignatureKind kind,
+        string name,
+        List<CodeParameter> parameters,
+        List<CodeGenericParameter> generics,
+        CodeType? returnType,
+        string className,
+        bool interfaceMode
+    )
     {
-        string actualName = kind == SignatureKind.Constructor
-            ? (ctx.Syntax.KeywordConstructor.Length > 0 ? ctx.Syntax.KeywordConstructor : className)
-            : name;
+        string actualName =
+            kind == SignatureKind.Constructor
+                ? (
+                    ctx.Syntax.KeywordConstructor.Length > 0
+                        ? ctx.Syntax.KeywordConstructor
+                        : className
+                )
+                : name;
 
         bool includeReturnType = kind != SignatureKind.Constructor;
 
@@ -125,16 +169,26 @@ public static class DefaultShapes
             parts.Add(mappedReturn ?? "void");
         }
 
-        string keyword = kind == SignatureKind.Function ? ctx.Syntax.KeywordFunction : ctx.Syntax.KeywordMethod;
+        string keyword =
+            kind == SignatureKind.Function ? ctx.Syntax.KeywordFunction : ctx.Syntax.KeywordMethod;
         if (keyword.Length > 0 && ctx.Syntax.ReturnTypeStyle != ReturnTypeStyle.BeforeName)
         {
             parts.Add(keyword);
         }
 
-        string signature = BuildNameWithGenerics(ctx, actualName, generics) + $"({BuildParamList(ctx, parameters, interfaceMode)})";
-        if (includeReturnType && mappedReturn is not null && ctx.Syntax.ReturnTypeStyle != ReturnTypeStyle.BeforeName)
+        string signature =
+            BuildNameWithGenerics(ctx, actualName, generics)
+            + $"({BuildParamList(ctx, parameters, interfaceMode)})";
+        if (
+            includeReturnType
+            && mappedReturn is not null
+            && ctx.Syntax.ReturnTypeStyle != ReturnTypeStyle.BeforeName
+        )
         {
-            signature += ctx.Syntax.ReturnTypeStyle == ReturnTypeStyle.ColonAfterParens ? $": {mappedReturn}" : $" -> {mappedReturn}";
+            signature +=
+                ctx.Syntax.ReturnTypeStyle == ReturnTypeStyle.ColonAfterParens
+                    ? $": {mappedReturn}"
+                    : $" -> {mappedReturn}";
         }
 
         parts.Add(signature);
@@ -142,16 +196,32 @@ public static class DefaultShapes
         return string.Join(" ", parts);
     }
 
-    // ---- Property ----
-
     /// <summary>Shapes a property declaration (the shared default).</summary>
-    public static void Property(ShapeContext ctx, CodeProperty property, string prefix, bool isTopLevel, bool isInterfaceMember)
+    public static void Property(
+        ShapeContext ctx,
+        CodeProperty property,
+        string prefix,
+        bool isTopLevel,
+        bool isInterfaceMember
+    )
     {
         if (ctx.Syntax.PropertyStyle == PropertyStyle.AsField)
         {
-            string keyword = isInterfaceMember ? string.Empty : (isTopLevel ? ctx.Syntax.TopLevelFieldKeyword : ctx.Syntax.FieldKeyword);
-            string declaration = BuildFieldDeclaration(ctx, property.Name, property.Type, property.Nullable, null, isConst: false, keyword);
-            ctx.Writer.WriteStatement(string.Join(" ", new[] { prefix, declaration }.Where(s => s.Length > 0)));
+            string keyword = isInterfaceMember
+                ? string.Empty
+                : (isTopLevel ? ctx.Syntax.TopLevelFieldKeyword : ctx.Syntax.FieldKeyword);
+            string declaration = BuildFieldDeclaration(
+                ctx,
+                property.Name,
+                property.Type,
+                property.Nullable,
+                null,
+                isConst: false,
+                keyword
+            );
+            ctx.Writer.WriteStatement(
+                string.Join(" ", new[] { prefix, declaration }.Where(s => s.Length > 0))
+            );
             return;
         }
 
@@ -159,7 +229,16 @@ public static class DefaultShapes
         {
             if (isInterfaceMember)
             {
-                ctx.Writer.WriteLine(BuildAutoAccessors(ctx, property.Name, property.Type, property.Nullable, property.HasGetter, property.HasSetter));
+                ctx.Writer.WriteLine(
+                    BuildAutoAccessors(
+                        ctx,
+                        property.Name,
+                        property.Type,
+                        property.Nullable,
+                        property.HasGetter,
+                        property.HasSetter
+                    )
+                );
                 return;
             }
 
@@ -223,9 +302,16 @@ public static class DefaultShapes
         ShapeBlocks.Close(ctx);
     }
 
-    private static void RenderBlockFormProperty(ShapeContext ctx, CodeProperty property, string prefix)
+    private static void RenderBlockFormProperty(
+        ShapeContext ctx,
+        CodeProperty property,
+        string prefix
+    )
     {
-        string header = string.Join(" ", new[] { prefix, "var", property.Name }.Where(s => s.Length > 0));
+        string header = string.Join(
+            " ",
+            new[] { prefix, "var", property.Name }.Where(s => s.Length > 0)
+        );
         if (property.Type is not null)
         {
             header += $": {ctx.Syntax.MapType(property.Type)}";
@@ -261,10 +347,14 @@ public static class DefaultShapes
         ctx.Writer.CloseBlock();
     }
 
-    // ---- Headers ----
-
     /// <summary>Shapes a class declaration header (the shared default).</summary>
-    public static string ClassHeader(ShapeContext ctx, string name, List<CodeGenericParameter> generics, string? extendsType, List<string> implementsTypes)
+    public static string ClassHeader(
+        ShapeContext ctx,
+        string name,
+        List<CodeGenericParameter> generics,
+        string? extendsType,
+        List<string> implementsTypes
+    )
     {
         List<string> parts = [ctx.Syntax.KeywordClass, BuildNameWithGenerics(ctx, name, generics)];
 
@@ -300,9 +390,18 @@ public static class DefaultShapes
     }
 
     /// <summary>Shapes an interface declaration header (the shared default).</summary>
-    public static string InterfaceHeader(ShapeContext ctx, string name, List<CodeGenericParameter> generics, List<string> extendsTypes)
+    public static string InterfaceHeader(
+        ShapeContext ctx,
+        string name,
+        List<CodeGenericParameter> generics,
+        List<string> extendsTypes
+    )
     {
-        List<string> parts = [ctx.Syntax.KeywordInterface, BuildNameWithGenerics(ctx, name, generics)];
+        List<string> parts =
+        [
+            ctx.Syntax.KeywordInterface,
+            BuildNameWithGenerics(ctx, name, generics),
+        ];
 
         if (extendsTypes.Count > 0)
         {
@@ -320,12 +419,13 @@ public static class DefaultShapes
         return string.Join(" ", parts);
     }
 
-    // ---- Enum ----
-
     /// <summary>Shapes an enum declaration (the shared default).</summary>
     public static void Enum(ShapeContext ctx, CodeEnum enm, string headerPrefix)
     {
-        string header = string.Join(" ", new[] { headerPrefix, ctx.Syntax.KeywordEnum, enm.Name }.Where(s => s.Length > 0));
+        string header = string.Join(
+            " ",
+            new[] { headerPrefix, ctx.Syntax.KeywordEnum, enm.Name }.Where(s => s.Length > 0)
+        );
         if (ctx.Syntax.BlockStyle == BlockStyle.Indentation)
         {
             ctx.Writer.WriteLine($"{header} {{");
@@ -355,15 +455,15 @@ public static class DefaultShapes
         }
     }
 
-    // ---- Statements ----
-
     /// <summary>Shapes an if/else-if/else statement (the shared default).</summary>
     public static void If(ShapeContext ctx, CodeIf ifStatement)
     {
         List<(string Header, List<CodeStatement> Body)> blocks =
         [
             (FormatCondition(ctx, "if", ifStatement.Condition), ifStatement.Then),
-            .. ifStatement.ElseIfs.Select(e => (FormatCondition(ctx, ctx.Syntax.KeywordElseIf, e.Condition), e.Body))
+            .. ifStatement.ElseIfs.Select(e =>
+                (FormatCondition(ctx, ctx.Syntax.KeywordElseIf, e.Condition), e.Body)
+            ),
         ];
         if (ifStatement.Else.Count > 0)
         {
@@ -384,9 +484,17 @@ public static class DefaultShapes
     }
 
     /// <summary>Shapes a foreach statement (the shared default).</summary>
-    public static void ForEach(ShapeContext ctx, string variable, string iterable, List<CodeStatement> body)
+    public static void ForEach(
+        ShapeContext ctx,
+        string variable,
+        string iterable,
+        List<CodeStatement> body
+    )
     {
-        string loopVariable = ctx.Syntax.ForEachVariable.Length > 0 ? $"{ctx.Syntax.ForEachVariable} {variable}" : variable;
+        string loopVariable =
+            ctx.Syntax.ForEachVariable.Length > 0
+                ? $"{ctx.Syntax.ForEachVariable} {variable}"
+                : variable;
         string header = ctx.Syntax.ConditionParens
             ? $"{ctx.Syntax.ForEachKeyword} ({loopVariable} {ctx.Syntax.ForEachConnector} {iterable})"
             : $"{ctx.Syntax.ForEachKeyword} {loopVariable} {ctx.Syntax.ForEachConnector} {iterable}";
@@ -401,7 +509,13 @@ public static class DefaultShapes
     }
 
     /// <summary>Shapes a C-style for statement (the shared default).</summary>
-    public static void For(ShapeContext ctx, string initializer, string condition, string increment, List<CodeStatement> body)
+    public static void For(
+        ShapeContext ctx,
+        string initializer,
+        string condition,
+        string increment,
+        List<CodeStatement> body
+    )
     {
         string header = ctx.Syntax.ConditionParens
             ? $"for ({initializer}; {condition}; {increment})"
@@ -455,7 +569,8 @@ public static class DefaultShapes
                 continue;
             }
 
-            string armHeader = arm.Pattern == "_" ? ctx.Syntax.KeywordDefaultArm : $"case {arm.Pattern}:";
+            string armHeader =
+                arm.Pattern == "_" ? ctx.Syntax.KeywordDefaultArm : $"case {arm.Pattern}:";
             ctx.Writer.WriteLine(armHeader);
             ctx.Writer.Indent();
             ctx.RenderStatements(arm.Body);
@@ -472,7 +587,7 @@ public static class DefaultShapes
         List<(string Header, List<CodeStatement> Body)> blocks =
         [
             ("try", tryStatement.Body),
-            .. tryStatement.Catches.Select(c => (CatchHeader(ctx, c), c.Body))
+            .. tryStatement.Catches.Select(c => (CatchHeader(ctx, c), c.Body)),
         ];
         if (tryStatement.Finally.Count > 0)
         {
@@ -502,7 +617,12 @@ public static class DefaultShapes
     }
 
     /// <summary>Shapes a raw block statement (the shared default).</summary>
-    public static void RawBlock(ShapeContext ctx, string header, List<CodeStatement> body, string? closeSuffix)
+    public static void RawBlock(
+        ShapeContext ctx,
+        string header,
+        List<CodeStatement> body,
+        string? closeSuffix
+    )
     {
         if (ctx.Syntax.BlockStyle == BlockStyle.Indentation)
         {
@@ -518,7 +638,11 @@ public static class DefaultShapes
     /// <summary>Shapes a local variable declaration (the shared default).</summary>
     public static string? LocalVariable(ShapeContext ctx, CodeLocalVariable variable)
     {
-        if (ctx.Syntax.ParameterStyle == ParameterStyle.TypeFirst && variable.Type is null && variable.Value is null)
+        if (
+            ctx.Syntax.ParameterStyle == ParameterStyle.TypeFirst
+            && variable.Type is null
+            && variable.Value is null
+        )
         {
             ctx.Warnings.Add($"Local variable '{variable.Name}' has no type or value; skipped.");
             return null;
@@ -562,8 +686,6 @@ public static class DefaultShapes
         parts.Add(line);
         return string.Join(" ", parts);
     }
-
-    // ---- Object literal ----
 
     /// <summary>Shapes an object literal statement (the shared default).</summary>
     public static void ObjectLiteral(ShapeContext ctx, CodeObjectLiteral literal)
@@ -609,57 +731,84 @@ public static class DefaultShapes
             ctx.Writer.WriteDocComment(function.DocComment.Text);
         }
 
-        string header = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(function.Modifiers),
-            ctx.Shapes.Signature(ctx, SignatureKind.Method, function.Name, function.Parameters, function.Generics, function.ReturnType, className: string.Empty, interfaceMode: false)]);
+        string header = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(function.Modifiers),
+                ctx.Shapes.Signature(
+                    ctx,
+                    SignatureKind.Method,
+                    function.Name,
+                    function.Parameters,
+                    function.Generics,
+                    function.ReturnType,
+                    className: string.Empty,
+                    interfaceMode: false
+                ),
+            ]
+        );
 
         ShapeBlocks.Open(ctx, header);
         ctx.RenderStatements(function.Body?.Statements ?? []);
         ShapeBlocks.Close(ctx, ",");
     }
 
-    // ---- Shared helpers ----
-
-    private static string BuildParamList(ShapeContext ctx, List<CodeParameter> parameters, bool interfaceMode = false)
+    private static string BuildParamList(
+        ShapeContext ctx,
+        List<CodeParameter> parameters,
+        bool interfaceMode = false
+    )
     {
-        return string.Join(", ", parameters.Select(p =>
-        {
-            if (ctx.Syntax.ParameterStyle == ParameterStyle.TypeFirst)
+        return string.Join(
+            ", ",
+            parameters.Select(p =>
             {
-                string result = p.Name;
+                if (ctx.Syntax.ParameterStyle == ParameterStyle.TypeFirst)
+                {
+                    string result = p.Name;
+                    if (p.Type is not null)
+                    {
+                        result =
+                            $"{ctx.Syntax.MapType(p.Type)}{(ctx.Syntax.SupportsNullable && p.Nullable ? "?" : "")} {result}";
+                    }
+
+                    if (p.DefaultValue is not null)
+                    {
+                        result += $" = {p.DefaultValue}";
+                    }
+
+                    return result;
+                }
+
+                string name = p.Name;
+                if (
+                    ctx.Syntax.SupportsNullable
+                    && (p.Nullable || (interfaceMode && p.DefaultValue is not null))
+                )
+                {
+                    name += "?";
+                }
+
                 if (p.Type is not null)
                 {
-                    result = $"{ctx.Syntax.MapType(p.Type)}{(ctx.Syntax.SupportsNullable && p.Nullable ? "?" : "")} {result}";
+                    name += $": {ctx.Syntax.MapType(p.Type)}";
                 }
 
-                if (p.DefaultValue is not null)
+                if (!interfaceMode && p.DefaultValue is not null)
                 {
-                    result += $" = {p.DefaultValue}";
+                    name += $" = {p.DefaultValue}";
                 }
 
-                return result;
-            }
-
-            string name = p.Name;
-            if (ctx.Syntax.SupportsNullable && (p.Nullable || (interfaceMode && p.DefaultValue is not null)))
-            {
-                name += "?";
-            }
-
-            if (p.Type is not null)
-            {
-                name += $": {ctx.Syntax.MapType(p.Type)}";
-            }
-
-            if (!interfaceMode && p.DefaultValue is not null)
-            {
-                name += $" = {p.DefaultValue}";
-            }
-
-            return name;
-        }));
+                return name;
+            })
+        );
     }
 
-    private static string BuildNameWithGenerics(ShapeContext ctx, string name, List<CodeGenericParameter> generics)
+    private static string BuildNameWithGenerics(
+        ShapeContext ctx,
+        string name,
+        List<CodeGenericParameter> generics
+    )
     {
         if (generics.Count == 0)
         {
@@ -673,36 +822,49 @@ public static class DefaultShapes
 
         if (ctx.Syntax.GenericStyle == GenericStyle.Inline)
         {
-            return name + "<" + string.Join(", ", generics.Select(g =>
-            {
-                string result = g.Name;
-                if (g.Constraint is not null)
-                {
-                    result += $" extends {g.Constraint}";
-                }
+            return name
+                + "<"
+                + string.Join(
+                    ", ",
+                    generics.Select(g =>
+                    {
+                        string result = g.Name;
+                        if (g.Constraint is not null)
+                        {
+                            result += $" extends {g.Constraint}";
+                        }
 
-                if (g.DefaultValue is not null)
-                {
-                    result += $" = {g.DefaultValue}";
-                }
+                        if (g.DefaultValue is not null)
+                        {
+                            result += $" = {g.DefaultValue}";
+                        }
 
-                return result;
-            })) + ">";
+                        return result;
+                    })
+                )
+                + ">";
         }
 
         return name + "<" + string.Join(", ", generics.Select(g => g.Name)) + ">";
     }
 
-    private static void AppendWhereClauses(List<string> parts, ShapeContext ctx, List<CodeGenericParameter> generics)
+    private static void AppendWhereClauses(
+        List<string> parts,
+        ShapeContext ctx,
+        List<CodeGenericParameter> generics
+    )
     {
         if (ctx.Syntax.GenericStyle != GenericStyle.WhereClauses)
         {
             return;
         }
 
-        string whereClauses = string.Join(" ", generics
-            .Where(g => g.Constraint is not null)
-            .Select(g => $"where {g.Name} : {g.Constraint}"));
+        string whereClauses = string.Join(
+            " ",
+            generics
+                .Where(g => g.Constraint is not null)
+                .Select(g => $"where {g.Name} : {g.Constraint}")
+        );
 
         if (whereClauses.Length > 0)
         {
@@ -722,7 +884,10 @@ public static class DefaultShapes
         ShapeBlocks.Close(ctx);
     }
 
-    private static void RenderChain(ShapeContext ctx, List<(string Header, List<CodeStatement> Body)> blocks)
+    private static void RenderChain(
+        ShapeContext ctx,
+        List<(string Header, List<CodeStatement> Body)> blocks
+    )
     {
         for (int i = 0; i < blocks.Count; i++)
         {

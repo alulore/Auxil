@@ -1,88 +1,115 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Auxil.Common;
 using Auxil.Common.Text;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
 [TestSubject(typeof(StringExtensions))]
-[SuppressMessage("ReSharper", "StringLiteralTypo")]
 public class StringExtensionsTest
 {
-    public static TheoryData<string, string, bool, List<int>> GetAllIndexesOfData => new()
-    {
-        { "HeLLoWorld", "L", true, [2, 3, 8] },
-        { "HeLLoWorld", "L", false, [2, 3] },
-        { "HeLLoWorld", "l", false, [8] },
-        { "", "a", false, [] },
-        { "%%Hello%World%%", "%%", false, [0, 13] },
-        { "%%Hello%World%%", "%%", true, [0, 13] }
-    };
+    public static TheoryData<string, string, bool, List<int>> GetAllIndexesOfData =>
+        new()
+        {
+            { "HeLLoWorld", "L", true, [2, 3, 8] },
+            { "HeLLoWorld", "L", false, [2, 3] },
+            { "HeLLoWorld", "l", false, [8] },
+            { "", "a", false, [] },
+            { "%%Hello%World%%", "%%", false, [0, 13] },
+            { "%%Hello%World%%", "%%", true, [0, 13] },
+        };
 
-    public static TheoryData<string, char[], ContextualStringSplitOptions, string[]> GetContextualSplitData => new()
-    {
+    public static TheoryData<
+        string,
+        char[],
+        ContextualStringSplitOptions,
+        string[]
+    > GetContextualSplitData =>
+        new()
         {
-            "A normal split.",
-            [' '],
-            new ContextualStringSplitOptions(),
-            ["A", "normal", "split."]
-        },
-        {
-            "A normal split, with-dash.",
-            [' ', '-'],
-            new ContextualStringSplitOptions(),
-            ["A", "normal", "split,", "with", "dash."]
-        },
-        {
-            "A  normal split.",
-            [' '],
-            new ContextualStringSplitOptions(),
-            ["A", "", "normal", "split."]
-        },
-        {
-            "A    normal    split.",
-            [' '],
-            new ContextualStringSplitOptions { RemoveEmptyEntries = true },
-            ["A", "normal", "split."]
-        },
-        {
-            "Split with numbers12345",
-            [' '],
-            new ContextualStringSplitOptions { RemoveEmptyEntries = true, IncludeNumbers = true },
-            ["Split", "with", "numbers", "12345"]
-        },
-        {
-            "Split with acronymsABCT",
-            [' '],
-            new ContextualStringSplitOptions { RemoveEmptyEntries = true, IncludeAcronyms = true },
-            ["Split", "with", "acronyms", "ABCT"]
-        },
-        {
-            "Split with both acronymsABCT123 and numbers123ABC",
-            [' '],
-            new ContextualStringSplitOptions { RemoveEmptyEntries = true, IncludeAcronyms = true, IncludeNumbers = true },
-            ["Split", "with", "both", "acronyms", "ABCT", "123", "and", "numbers", "123", "ABC"]
-        },
-        {
-            "Split with acronymsABCTand",
-            [' '],
-            new ContextualStringSplitOptions { RemoveEmptyEntries = true, IncludeAcronyms = true },
-            ["Split", "with", "acronyms", "ABCT", "and"]
-        },
-        {
-            "Split with ABC123DEF",
-            [' '],
-            new ContextualStringSplitOptions { IncludeAcronyms = true },
-            ["Split", "with", "ABC123DEF"]
-        }
-    };
+            {
+                "A normal split.",
+                [' '],
+                new ContextualStringSplitOptions(),
+                ["A", "normal", "split."]
+            },
+            {
+                "A normal split, with-dash.",
+                [' ', '-'],
+                new ContextualStringSplitOptions(),
+                ["A", "normal", "split,", "with", "dash."]
+            },
+            {
+                "A  normal split.",
+                [' '],
+                new ContextualStringSplitOptions(),
+                ["A", "", "normal", "split."]
+            },
+            {
+                "A    normal    split.",
+                [' '],
+                new ContextualStringSplitOptions { RemoveEmptyEntries = true },
+                ["A", "normal", "split."]
+            },
+            {
+                "Split with numbers12345",
+                [' '],
+                new ContextualStringSplitOptions
+                {
+                    RemoveEmptyEntries = true,
+                    IncludeNumbers = true,
+                },
+                ["Split", "with", "numbers", "12345"]
+            },
+            {
+                "Split with acronymsABCT",
+                [' '],
+                new ContextualStringSplitOptions
+                {
+                    RemoveEmptyEntries = true,
+                    IncludeAcronyms = true,
+                },
+                ["Split", "with", "acronyms", "ABCT"]
+            },
+            {
+                "Split with both acronymsABCT123 and numbers123ABC",
+                [' '],
+                new ContextualStringSplitOptions
+                {
+                    RemoveEmptyEntries = true,
+                    IncludeAcronyms = true,
+                    IncludeNumbers = true,
+                },
+                ["Split", "with", "both", "acronyms", "ABCT", "123", "and", "numbers", "123", "ABC"]
+            },
+            {
+                "Split with acronymsABCTand",
+                [' '],
+                new ContextualStringSplitOptions
+                {
+                    RemoveEmptyEntries = true,
+                    IncludeAcronyms = true,
+                },
+                ["Split", "with", "acronyms", "ABCT", "and"]
+            },
+            {
+                "Split with ABC123DEF",
+                [' '],
+                new ContextualStringSplitOptions { IncludeAcronyms = true },
+                ["Split", "with", "ABC123DEF"]
+            },
+        };
 
     [Theory]
     [MemberData(nameof(GetAllIndexesOfData), MemberType = typeof(StringExtensionsTest))]
-    public void AllIndexesOf(string text, string subString, bool ignoreCase, IEnumerable<int> expected)
+    public void AllIndexesOf(
+        string text,
+        string subString,
+        bool ignoreCase,
+        IEnumerable<int> expected
+    )
     {
         text.AllIndexesOf(subString, ignoreCase).ShouldBeEquivalentTo(expected);
     }
@@ -90,31 +117,36 @@ public class StringExtensionsTest
     [Fact]
     public void ContextualSplit_WithoutOptions()
     {
-        "A normal split.".ContextualSplit([' ']).ShouldBe([ "A", "normal", "split." ]);
+        "A normal split.".ContextualSplit([' ']).ShouldBe(["A", "normal", "split."]);
     }
 
     [Fact]
     public void ContextualSplit_TrimsEntries()
     {
-        "  A normal  split.  ".ContextualSplit([' '], new ContextualStringSplitOptions
-        {
-            RemoveEmptyEntries = true,
-            TrimEntries = true
-        }).ShouldBe([ "A", "normal", "split." ]);
+        "  A normal  split.  "
+            .ContextualSplit(
+                [' '],
+                new ContextualStringSplitOptions { RemoveEmptyEntries = true, TrimEntries = true }
+            )
+            .ShouldBe(["A", "normal", "split."]);
     }
 
     [Fact]
     public void ContextualSplit_DefaultsSeparatorsToSpaceWhenEmpty()
     {
-        "A B CD".ContextualSplit([], new ContextualStringSplitOptions
-        {
-            IncludeAcronyms = true
-        }).ShouldBe([ "A", "B", "CD" ]);
+        "A B CD"
+            .ContextualSplit([], new ContextualStringSplitOptions { IncludeAcronyms = true })
+            .ShouldBe(["A", "B", "CD"]);
     }
 
     [Theory]
     [MemberData(nameof(GetContextualSplitData), MemberType = typeof(StringExtensionsTest))]
-    public void ContextualSplit(string text, char[] separators, ContextualStringSplitOptions options, string[] expected)
+    public void ContextualSplit(
+        string text,
+        char[] separators,
+        ContextualStringSplitOptions options,
+        string[] expected
+    )
     {
         text.ContextualSplit(separators, options).ShouldBe(expected);
     }
@@ -210,7 +242,11 @@ public class StringExtensionsTest
     [Theory]
     [InlineData("ALPHA", true, VersionDevelopmentStage.Alpha)]
     [InlineData("ALPHA", false, VersionDevelopmentStage.None)]
-    public void ToEnum_RespectsIgnoreCase(string text, bool ignoreCase, VersionDevelopmentStage expected)
+    public void ToEnum_RespectsIgnoreCase(
+        string text,
+        bool ignoreCase,
+        VersionDevelopmentStage expected
+    )
     {
         text.ToEnum<VersionDevelopmentStage>(ignoreCase: ignoreCase).ShouldBe(expected);
     }
@@ -219,14 +255,6 @@ public class StringExtensionsTest
     public void ToEnum_UsesDefaultWhenParseFails()
     {
         "not-an-enum".ToEnum(VersionDevelopmentStage.Beta).ShouldBe(VersionDevelopmentStage.Beta);
-    }
-
-    [Fact]
-    public void ToEnum_ThrowsOnNull()
-    {
-        string? text = null;
-
-        Should.Throw<ArgumentNullException>(() => text!.ToEnum<VersionDevelopmentStage>());
     }
 
     [Theory]
@@ -239,14 +267,6 @@ public class StringExtensionsTest
     public void EndLineCount(string text, int expected)
     {
         text.EndLineCount().ShouldBe(expected);
-    }
-
-    [Fact]
-    public void EndLineCount_ThrowsOnNull()
-    {
-        string? text = null;
-
-        Should.Throw<ArgumentNullException>(() => text!.EndLineCount());
     }
 
     [Theory]
@@ -304,14 +324,6 @@ public class StringExtensionsTest
         result.ShouldBe(expected);
     }
 
-    [Fact]
-    public void GetNewLineType_ThrowsOnNull()
-    {
-        string? text = null;
-
-        Should.Throw<ArgumentNullException>(() => text!.GetNewLineType());
-    }
-
     [Theory]
     [InlineData("hello", 2, true, "llo")]
     [InlineData("hello", 1, true, "ello")]
@@ -327,14 +339,6 @@ public class StringExtensionsTest
     public void RemoveLeft(string text, int count, bool treatNewLineAsSingle, string expected)
     {
         text.RemoveLeft(count, treatNewLineAsSingle).ShouldBe(expected);
-    }
-
-    [Fact]
-    public void RemoveLeft_ThrowsOnNull()
-    {
-        string? text = null;
-
-        Should.Throw<ArgumentNullException>(() => text!.RemoveLeft());
     }
 
     [Theory]
@@ -354,14 +358,6 @@ public class StringExtensionsTest
         text.RemoveRight(count, treatNewLineAsSingle).ShouldBe(expected);
     }
 
-    [Fact]
-    public void RemoveRight_ThrowsOnNull()
-    {
-        string? text = null;
-
-        Should.Throw<ArgumentNullException>(() => text!.RemoveRight());
-    }
-
     [Theory]
     [InlineData("AGGTAB", "GXTXAYB", "GTAB")]
     [InlineData("XMJYAUZ", "MZJAWXU", "MJAU")]
@@ -376,13 +372,6 @@ public class StringExtensionsTest
         text.LongestCommonSubsequence(otherText).ShouldBe(expected);
     }
 
-    [Fact]
-    public void LongestCommonSubsequence_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => ((string?)null)!.LongestCommonSubsequence("abc"));
-        Should.Throw<ArgumentNullException>(() => "abc".LongestCommonSubsequence(null!));
-    }
-
     [Theory]
     [InlineData("path\\to\\file.txt", "path/to/file.txt")]
     [InlineData("no-backslashes", "no-backslashes")]
@@ -390,12 +379,6 @@ public class StringExtensionsTest
     public void ToForwardSlash(string text, string expected)
     {
         text.ToForwardSlash().ShouldBe(expected);
-    }
-
-    [Fact]
-    public void ToForwardSlash_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => ((string?)null)!.ToForwardSlash());
     }
 
     [Theory]
@@ -408,16 +391,13 @@ public class StringExtensionsTest
 
     [Theory]
     [InlineData("aa..bb!!", new[] { 'a', '.', '!' }, "a.bb!")]
-    public void RemoveConsecutiveDuplicates_WithCharacters(string text, char[] characters, string expected)
+    public void RemoveConsecutiveDuplicates_WithCharacters(
+        string text,
+        char[] characters,
+        string expected
+    )
     {
         text.RemoveConsecutiveDuplicates(characters).ShouldBe(expected);
-    }
-
-    [Fact]
-    public void RemoveConsecutiveDuplicates_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => ((string?)null)!.RemoveConsecutiveDuplicates('a'));
-        Should.Throw<ArgumentNullException>(() => "abc".RemoveConsecutiveDuplicates(null!));
     }
 
     [Theory]
@@ -461,12 +441,6 @@ public class StringExtensionsTest
     }
 
     [Fact]
-    public void Parse_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => ((string?)null)!.Parse<int>());
-    }
-
-    [Fact]
     public void TryParse_ReturnsTrueWithValue()
     {
         "42".TryParse(out int value).ShouldBeTrue();
@@ -483,7 +457,7 @@ public class StringExtensionsTest
     [Fact]
     public void TryParse_ReturnsFalseOnNull()
     {
-        ((string?)null)!.TryParse(out int value).ShouldBeFalse();
+        ((string?)null).TryParse(out int value).ShouldBeFalse();
         value.ShouldBe(0);
     }
 
@@ -628,14 +602,23 @@ public class StringExtensionsTest
     [Theory]
     [InlineData("hello", "\"", "\"hello\"")]
     [InlineData("hello", "[", "[hello[")]
-    public void SurroundWith_UsesSameDelimiterBothSides(string text, string delimiter, string expected)
+    public void SurroundWith_UsesSameDelimiterBothSides(
+        string text,
+        string delimiter,
+        string expected
+    )
     {
         text.SurroundWith(delimiter).ShouldBe(expected);
     }
 
     [Theory]
     [InlineData("hello", "[", "]", "[hello]")]
-    public void SurroundWith_WithEndDelimiter(string text, string startDelimiter, string endDelimiter, string expected)
+    public void SurroundWith_WithEndDelimiter(
+        string text,
+        string startDelimiter,
+        string endDelimiter,
+        string expected
+    )
     {
         text.SurroundWith(startDelimiter, endDelimiter).ShouldBe(expected);
     }
@@ -657,8 +640,8 @@ public class StringExtensionsTest
     [Fact]
     public void GetLines_WithOptions()
     {
-        "a\n\nb".GetLines(removeEmptyLines: false).ShouldBe([ "a", "", "b" ]);
-        "a\n\nb".GetLines().ShouldBe([ "a", "b" ]);
+        "a\n\nb".GetLines(removeEmptyLines: false).ShouldBe(["a", "", "b"]);
+        "a\n\nb".GetLines().ShouldBe(["a", "b"]);
     }
 
     [Fact]
@@ -678,5 +661,4 @@ public class StringExtensionsTest
     {
         "AbC".RegexReplace("b", "x", RegexOptions.IgnoreCase).ShouldBe("AxC");
     }
-
-    }
+}
