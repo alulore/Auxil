@@ -8,11 +8,13 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// Constructor) are provided as trait-gated extension members.
 /// </summary>
 [PublicAPI]
-public sealed class ClassScope<TLanguage, TParent> : DeclarationScope<TLanguage, ClassScope<TLanguage, TParent>, TParent>
+public sealed class ClassScope<TLanguage, TParent>
+    : DeclarationScope<TLanguage, ClassScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
-    internal ClassScope(CodeBuilder<TLanguage> builder, CodeClass cls, TParent parent) : base(builder, cls, parent)
+    internal ClassScope(CodeBuilder<TLanguage> builder, CodeClass cls, TParent parent)
+        : base(builder, cls, parent)
     {
         ClassNode = cls;
     }
@@ -54,9 +56,18 @@ public sealed class ClassScope<TLanguage, TParent> : DeclarationScope<TLanguage,
     /// <param name="name">The field name.</param>
     /// <param name="type">The field type.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FieldScope<TLanguage, ClassScope<TLanguage, TParent>> Field(string name, CodeType? type = null, string? defaultValue = null)
+    public FieldScope<TLanguage, ClassScope<TLanguage, TParent>> Field(
+        string name,
+        CodeType? type = null,
+        string? defaultValue = null
+    )
     {
-        CodeField field = new() { Name = name, Type = type, DefaultValue = defaultValue };
+        CodeField field = new()
+        {
+            Name = name,
+            Type = type,
+            DefaultValue = defaultValue,
+        };
         ClassNode.Members.Add(field);
         return new FieldScope<TLanguage, ClassScope<TLanguage, TParent>>(Builder, field, this);
     }
@@ -65,7 +76,11 @@ public sealed class ClassScope<TLanguage, TParent> : DeclarationScope<TLanguage,
     /// <param name="name">The field name.</param>
     /// <param name="typeName">The field type name.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FieldScope<TLanguage, ClassScope<TLanguage, TParent>> Field(string name, string typeName, string? defaultValue = null)
+    public FieldScope<TLanguage, ClassScope<TLanguage, TParent>> Field(
+        string name,
+        string typeName,
+        string? defaultValue = null
+    )
     {
         return Field(name, CodeType.Of(typeName), defaultValue);
     }
@@ -73,17 +88,27 @@ public sealed class ClassScope<TLanguage, TParent> : DeclarationScope<TLanguage,
     /// <summary>Adds a property to the current class.</summary>
     /// <param name="name">The property name.</param>
     /// <param name="type">The property type.</param>
-    public PropertyScope<TLanguage, ClassScope<TLanguage, TParent>> Property(string name, CodeType? type = null)
+    public PropertyScope<TLanguage, ClassScope<TLanguage, TParent>> Property(
+        string name,
+        CodeType? type = null
+    )
     {
         CodeProperty property = new() { Name = name, Type = type };
         ClassNode.Members.Add(property);
-        return new PropertyScope<TLanguage, ClassScope<TLanguage, TParent>>(Builder, property, this);
+        return new PropertyScope<TLanguage, ClassScope<TLanguage, TParent>>(
+            Builder,
+            property,
+            this
+        );
     }
 
     /// <summary>Adds a property to the current class using a type name string.</summary>
     /// <param name="name">The property name.</param>
     /// <param name="typeName">The property type name.</param>
-    public PropertyScope<TLanguage, ClassScope<TLanguage, TParent>> Property(string name, string typeName)
+    public PropertyScope<TLanguage, ClassScope<TLanguage, TParent>> Property(
+        string name,
+        string typeName
+    )
     {
         return Property(name, CodeType.Of(typeName));
     }

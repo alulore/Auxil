@@ -11,5 +11,5 @@ public enum ParameterStyle
     NameFirst,
 
     /// <summary>Type first: Type name (C#, Java).</summary>
-    TypeFirst
+    TypeFirst,
 }

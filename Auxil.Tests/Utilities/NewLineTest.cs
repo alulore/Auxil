@@ -1,6 +1,6 @@
-using JetBrains.Annotations;
 using Auxil.Common.Text;
 using Auxil.Utilities;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Utilities;
 
@@ -22,6 +22,8 @@ public class NewLineTest
     [InlineData((NewLineCharacter)999)]
     public void GetCharacterByType_ThrowsForNonCharacterTypes(NewLineCharacter newLineCharacter)
     {
-        Should.Throw<ArgumentOutOfRangeException>(() => NewLine.GetCharacterByType(newLineCharacter));
+        Should.Throw<ArgumentOutOfRangeException>(() =>
+            NewLine.GetCharacterByType(newLineCharacter)
+        );
     }
 }

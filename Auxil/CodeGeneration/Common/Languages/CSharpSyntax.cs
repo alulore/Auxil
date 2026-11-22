@@ -37,7 +37,7 @@ public static class CSharpSyntax
                 [CodeModifier.Sealed] = "sealed",
                 [CodeModifier.Readonly] = "readonly",
                 [CodeModifier.Const] = "const",
-                [CodeModifier.Async] = "async"
+                [CodeModifier.Async] = "async",
             },
             TypeMap = new Dictionary<string, string>
             {
@@ -48,7 +48,7 @@ public static class CSharpSyntax
                 ["bool"] = "bool",
                 ["void"] = "void",
                 ["object"] = "object",
-                ["dynamic"] = "dynamic"
+                ["dynamic"] = "dynamic",
             },
             KeywordExtends = string.Empty,
             KeywordConstructor = string.Empty,
@@ -63,7 +63,7 @@ public static class CSharpSyntax
             ForEachVariable = "var",
             ForEachConnector = "in",
             LocalVarKeyword = "var",
-            EnumTrailingComma = false
+            EnumTrailingComma = false,
         };
     }
 }

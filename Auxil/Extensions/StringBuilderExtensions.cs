@@ -11,30 +11,38 @@ public static class StringBuilderExtensions
     /// <summary>Appends the character sequence for the given newline style.</summary>
     /// <param name="sb">The builder to append to.</param>
     /// <param name="newLineCharacter">The newline style to append.</param>
-    public static StringBuilder NewLine(this StringBuilder sb,
-        NewLineCharacter newLineCharacter = NewLineCharacter.LineFeed)
-        => sb.Append(Utilities.NewLine.GetCharacterByType(newLineCharacter));
+    public static StringBuilder NewLine(
+        this StringBuilder sb,
+        NewLineCharacter newLineCharacter = NewLineCharacter.LineFeed
+    ) => sb.Append(Utilities.NewLine.GetCharacterByType(newLineCharacter));
 
     /// <summary>Appends the value followed by a newline.</summary>
     /// <param name="sb">The builder to append to.</param>
     /// <param name="value">The value to append.</param>
     /// <param name="newLineCharacter">The newline style to append.</param>
-    public static StringBuilder AppendWithNewLine(this StringBuilder sb, string? value,
-        NewLineCharacter newLineCharacter = NewLineCharacter.LineFeed)
-        => sb.Append(value).Append(Utilities.NewLine.GetCharacterByType(newLineCharacter));
+    public static StringBuilder AppendWithNewLine(
+        this StringBuilder sb,
+        string? value,
+        NewLineCharacter newLineCharacter = NewLineCharacter.LineFeed
+    ) => sb.Append(value).Append(Utilities.NewLine.GetCharacterByType(newLineCharacter));
 
     /// <summary>Appends only a newline.</summary>
     /// <param name="sb">The builder to append to.</param>
     /// <param name="newLineCharacter">The newline style to append.</param>
-    public static StringBuilder AppendWithNewLine(this StringBuilder sb,
-        NewLineCharacter newLineCharacter = NewLineCharacter.LineFeed)
-        => sb.Append(Utilities.NewLine.GetCharacterByType(newLineCharacter));
+    public static StringBuilder AppendWithNewLine(
+        this StringBuilder sb,
+        NewLineCharacter newLineCharacter = NewLineCharacter.LineFeed
+    ) => sb.Append(Utilities.NewLine.GetCharacterByType(newLineCharacter));
 
     /// <summary>Removes the last characters, treating a CRLF pair as a single character when requested.</summary>
     /// <param name="sb">The builder to modify.</param>
     /// <param name="count">The number of characters to remove.</param>
     /// <param name="treatEndCharacterAsOne">Whether a trailing CRLF pair counts as a single character.</param>
-    public static StringBuilder RemoveLast(this StringBuilder sb, int count = 1, bool treatEndCharacterAsOne = true)
+    public static StringBuilder RemoveLast(
+        this StringBuilder sb,
+        int count = 1,
+        bool treatEndCharacterAsOne = true
+    )
     {
         if (count < 1)
         {
@@ -51,7 +59,10 @@ public static class StringBuilderExtensions
             string sbValue = sb.ToString();
             int startIndex = count * 2 > sbValue.Length ? 0 : sbValue.Length - count * 2;
             sbValue = sbValue[startIndex..];
-            int numOfWindowsEndLines = Regex.Count(sbValue, Utilities.NewLine.CarriageReturnLineFeed);
+            int numOfWindowsEndLines = Regex.Count(
+                sbValue,
+                Utilities.NewLine.CarriageReturnLineFeed
+            );
             count += numOfWindowsEndLines;
         }
 
@@ -63,12 +74,14 @@ public static class StringBuilderExtensions
     /// <summary>Appends the given number of tab characters.</summary>
     /// <param name="sb">The builder to append to.</param>
     /// <param name="level">The number of tabs to append.</param>
-    public static StringBuilder Tab(this StringBuilder sb, int level = 1) => sb.Append("\t".Repeat(level));
+    public static StringBuilder Tab(this StringBuilder sb, int level = 1) =>
+        sb.Append("\t".Repeat(level));
 
     /// <summary>Inserts the value at the start of the builder.</summary>
     /// <param name="sb">The builder to modify.</param>
     /// <param name="value">The value to insert.</param>
-    public static StringBuilder Prepend(this StringBuilder sb, string? value) => sb.Insert(0, value);
+    public static StringBuilder Prepend(this StringBuilder sb, string? value) =>
+        sb.Insert(0, value);
 
     /// <summary>Returns a new builder containing a copy of the current content.</summary>
     /// <param name="sb">The builder to copy.</param>

@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Common;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common;
 
@@ -15,7 +15,14 @@ public class VersionNumberTest
     [InlineData(1, 2, 3, 0, VersionDevelopmentStage.Final, "1.2.3")]
     [InlineData(1, 2, 3, 5, VersionDevelopmentStage.None, "1.2.3+5")]
     [InlineData(1, 2, 3, 5, VersionDevelopmentStage.Alpha, "1.2.3-alpha+5")]
-    public void ToString_UsesSemverFormat(uint major, uint minor, uint patch, uint build, VersionDevelopmentStage stage, string expected)
+    public void ToString_UsesSemverFormat(
+        uint major,
+        uint minor,
+        uint patch,
+        uint build,
+        VersionDevelopmentStage stage,
+        string expected
+    )
     {
         VersionNumber version = new(major, minor, patch, build, stage);
 
@@ -67,7 +74,15 @@ public class VersionNumberTest
     [InlineData(1, 2, 4, 1, 2, 3, 1)]
     [InlineData(1, 2, 3, 2, 0, 0, -1)]
     [InlineData(1, 2, 3, 1, 2, 3, 0)]
-    public void CompareTo_OrdersByComponents(uint majorA, uint minorA, uint patchA, uint majorB, uint minorB, uint patchB, int expected)
+    public void CompareTo_OrdersByComponents(
+        uint majorA,
+        uint minorA,
+        uint patchA,
+        uint majorB,
+        uint minorB,
+        uint patchB,
+        int expected
+    )
     {
         VersionNumber a = new(majorA, minorA, patchA);
         VersionNumber b = new(majorB, minorB, patchB);
@@ -138,7 +153,7 @@ public class VersionNumberTest
             new(2, 0, 0),
             new(1, 2, 3, Stage: VersionDevelopmentStage.Alpha),
             new(1, 2, 3),
-            new(1, 0, 0)
+            new(1, 0, 0),
         ];
 
         versions.Sort();
@@ -196,7 +211,14 @@ public class VersionNumberTest
     [InlineData("1.2.3-pre", 1, 2, 3, 0, VersionDevelopmentStage.PreAlpha)]
     [InlineData("1.2.3-rc", 1, 2, 3, 0, VersionDevelopmentStage.Rc)]
     [InlineData("1.2.3+7", 1, 2, 3, 7, VersionDevelopmentStage.None)]
-    public void TryParse_ValidInputs(string text, uint major, uint minor, uint patch, uint build, VersionDevelopmentStage stage)
+    public void TryParse_ValidInputs(
+        string text,
+        uint major,
+        uint minor,
+        uint patch,
+        uint build,
+        VersionDevelopmentStage stage
+    )
     {
         VersionNumber.TryParse(text, null, out VersionNumber result).ShouldBeTrue();
         result.ShouldBe(new VersionNumber(major, minor, patch, build, stage));
@@ -220,7 +242,9 @@ public class VersionNumberTest
     [Fact]
     public void Parse_ReturnsVersionForValidInput()
     {
-        VersionNumber.Parse("1.2.3-beta+4", null).ShouldBe(new VersionNumber(1, 2, 3, 4, VersionDevelopmentStage.Beta));
+        VersionNumber
+            .Parse("1.2.3-beta+4", null)
+            .ShouldBe(new VersionNumber(1, 2, 3, 4, VersionDevelopmentStage.Beta));
     }
 
     [Fact]

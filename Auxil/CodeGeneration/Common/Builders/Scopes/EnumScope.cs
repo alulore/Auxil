@@ -6,13 +6,15 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// An enum scope. Member() is the only member-creating operation.
 /// </summary>
 [PublicAPI]
-public sealed class EnumScope<TLanguage, TParent> : DeclarationScope<TLanguage, EnumScope<TLanguage, TParent>, TParent>
+public sealed class EnumScope<TLanguage, TParent>
+    : DeclarationScope<TLanguage, EnumScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
     private readonly CodeEnum _enm;
 
-    internal EnumScope(CodeBuilder<TLanguage> builder, CodeEnum enm, TParent parent) : base(builder, enm, parent)
+    internal EnumScope(CodeBuilder<TLanguage> builder, CodeEnum enm, TParent parent)
+        : base(builder, enm, parent)
     {
         _enm = enm;
     }

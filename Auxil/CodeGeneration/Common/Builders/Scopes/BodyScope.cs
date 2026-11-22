@@ -7,14 +7,14 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// Provides the Body overloads.
 /// </summary>
 [PublicAPI]
-public abstract class BodyScope<TLanguage, TScope, TParent> : ParameterScope<TLanguage, TScope, TParent>
+public abstract class BodyScope<TLanguage, TScope, TParent>
+    : ParameterScope<TLanguage, TScope, TParent>
     where TLanguage : struct, ILanguage
     where TScope : BodyScope<TLanguage, TScope, TParent>
     where TParent : IScope
 {
-    internal BodyScope(CodeBuilder<TLanguage> builder, CodeNode node, TParent parent) : base(builder, node, parent)
-    {
-    }
+    private protected BodyScope(CodeBuilder<TLanguage> builder, CodeNode node, TParent parent)
+        : base(builder, node, parent) { }
 
     /// <summary>Stores the body.</summary>
     protected abstract void SetBody(CodeBody body);

@@ -1,16 +1,17 @@
-using JetBrains.Annotations;
 using Auxil.Common;
 using Auxil.Utilities;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Utilities;
 
 [TestSubject(typeof(EnumUtility<>))]
 public class EnumUtilityTest
 {
-            [Fact]
+    [Fact]
     public void GetValueNames_ExcludesGivenValues()
     {
-        EnumUtility<VersionDevelopmentStage>.GetValueNames([VersionDevelopmentStage.Alpha, VersionDevelopmentStage.Final])
+        EnumUtility<VersionDevelopmentStage>
+            .GetValueNames([VersionDevelopmentStage.Alpha, VersionDevelopmentStage.Final])
             .ShouldBe(new[] { "None", "PreAlpha", "Beta", "Rc" });
     }
 

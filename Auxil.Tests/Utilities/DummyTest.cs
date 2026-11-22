@@ -1,18 +1,24 @@
-using JetBrains.Annotations;
-using Auxil.Utilities.DummyUtility;
 using Auxil.Extensions;
+using Auxil.Utilities.DummyUtility;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Utilities;
 
 [TestSubject(typeof(Dummy))]
 public class DummyTest
 {
-    [Theory]
-    [InlineData(DummyDataType.LoremIpsum)]
-    [InlineData(DummyDataType.EnglishGibberish)]
-    public void Word_ReturnsNonEmptyWord(DummyDataType type)
+    [Fact]
+    public void Word_LoremIpsum_ReturnsAWordFromTheLoremList()
     {
-        Dummy.Word(type).ShouldNotBeEmpty();
+        StaticDummyData.LoremWords.ShouldContain(Dummy.Word(DummyDataType.LoremIpsum));
+    }
+
+    [Fact]
+    public void Word_EnglishGibberish_ReturnsAWordFromTheGibberishList()
+    {
+        StaticDummyData.RandomEnglishWords.ShouldContain(
+            Dummy.Word(DummyDataType.EnglishGibberish)
+        );
     }
 
     [Fact]
@@ -41,7 +47,7 @@ public class DummyTest
         string sentence = Dummy.Sentence(DummyDataType.LoremIpsum, 3, 3);
 
         char.IsUpper(sentence[0]).ShouldBeTrue();
-        sentence.EndsWith('.').ShouldBeTrue();
+        sentence.ShouldEndWith(".");
     }
 
     [Fact]
@@ -60,4 +66,27 @@ public class DummyTest
         paragraph.CountSentences().ShouldBe(2);
     }
 
+    [Fact]
+    public void Paragraph_WithEqualBounds_UsesThatSentenceCount()
+    {
+        string paragraph = Dummy.Paragraph(DummyDataType.LoremIpsum, 2, 2);
+
+        paragraph.Count(character => character == (char)10).ShouldBe(1);
     }
+
+    [Fact]
+    public void Sentence_WithMinimumJustAboveMaximum_UsesTheMinimum()
+    {
+        string sentence = Dummy.Sentence(DummyDataType.LoremIpsum, 6, 5);
+
+        sentence.Split(' ').Length.ShouldBe(6);
+    }
+
+    [Fact]
+    public void Sentence_WithMinimumFarAboveMaximum_Throws()
+    {
+        Should.Throw<ArgumentOutOfRangeException>(() =>
+            Dummy.Sentence(DummyDataType.LoremIpsum, 9, 5)
+        );
+    }
+}

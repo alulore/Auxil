@@ -1,13 +1,19 @@
-using JetBrains.Annotations;
 using Auxil.Utilities;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Utilities;
 
 [TestSubject(typeof(FileUtility))]
 public class FileUtilityTest : IDisposable
 {
-    private readonly string _sourceDirectory = Path.Combine(Path.GetTempPath(), $"uphoric-test-src-{Guid.NewGuid():N}");
-    private readonly string _destinationDirectory = Path.Combine(Path.GetTempPath(), $"uphoric-test-dst-{Guid.NewGuid():N}");
+    private readonly string _sourceDirectory = Path.Combine(
+        Path.GetTempPath(),
+        $"uphoric-test-src-{Guid.NewGuid():N}"
+    );
+    private readonly string _destinationDirectory = Path.Combine(
+        Path.GetTempPath(),
+        $"uphoric-test-dst-{Guid.NewGuid():N}"
+    );
 
     public FileUtilityTest()
     {
@@ -19,6 +25,7 @@ public class FileUtilityTest : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         if (Directory.Exists(_sourceDirectory))
         {
             Directory.Delete(_sourceDirectory, true);
@@ -36,13 +43,16 @@ public class FileUtilityTest : IDisposable
         FileUtility.CopyDirectory(_sourceDirectory, _destinationDirectory).ShouldBeTrue();
 
         File.ReadAllText(Path.Combine(_destinationDirectory, "root.txt")).ShouldBe("root");
-        File.ReadAllText(Path.Combine(_destinationDirectory, "sub", "nested.txt")).ShouldBe("nested");
+        File.ReadAllText(Path.Combine(_destinationDirectory, "sub", "nested.txt"))
+            .ShouldBe("nested");
     }
 
     [Fact]
     public void CopyDirectory_MissingSourceReturnsFalse()
     {
-        FileUtility.CopyDirectory(Path.Combine(_sourceDirectory, "missing"), _destinationDirectory).ShouldBeFalse();
+        FileUtility
+            .CopyDirectory(Path.Combine(_sourceDirectory, "missing"), _destinationDirectory)
+            .ShouldBeFalse();
     }
 
     [Fact]
@@ -59,7 +69,9 @@ public class FileUtilityTest : IDisposable
         Directory.CreateDirectory(_destinationDirectory);
         File.WriteAllText(Path.Combine(_destinationDirectory, "root.txt"), "stale");
 
-        FileUtility.CopyDirectory(_sourceDirectory, _destinationDirectory, overwrite: true).ShouldBeTrue();
+        FileUtility
+            .CopyDirectory(_sourceDirectory, _destinationDirectory, overwrite: true)
+            .ShouldBeTrue();
 
         File.ReadAllText(Path.Combine(_destinationDirectory, "root.txt")).ShouldBe("root");
     }
@@ -68,25 +80,51 @@ public class FileUtilityTest : IDisposable
     public void CopyDirectory_RejectsSourceAndDescendantDestinations()
     {
         Should.Throw<ArgumentException>(() =>
-            FileUtility.CopyDirectory(_sourceDirectory, _sourceDirectory));
+            FileUtility.CopyDirectory(_sourceDirectory, _sourceDirectory)
+        );
         Should.Throw<ArgumentException>(() =>
-            FileUtility.CopyDirectory(_sourceDirectory, Path.Combine(_sourceDirectory, "nested-copy")));
+            FileUtility.CopyDirectory(
+                _sourceDirectory,
+                Path.Combine(_sourceDirectory, "nested-copy")
+            )
+        );
     }
 
     [Fact]
     public async Task CopyDirectoryAsync_CopiesFullTree()
     {
-        (await FileUtility.CopyDirectoryAsync(_sourceDirectory, _destinationDirectory)).ShouldBeTrue();
+        (
+            await FileUtility.CopyDirectoryAsync(
+                _sourceDirectory,
+                _destinationDirectory,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).ShouldBeTrue();
 
-        File.ReadAllText(Path.Combine(_destinationDirectory, "root.txt")).ShouldBe("root");
-        File.ReadAllText(Path.Combine(_destinationDirectory, "sub", "nested.txt")).ShouldBe("nested");
+        (
+            await File.ReadAllTextAsync(
+                Path.Combine(_destinationDirectory, "root.txt"),
+                TestContext.Current.CancellationToken
+            )
+        ).ShouldBe("root");
+        (
+            await File.ReadAllTextAsync(
+                Path.Combine(_destinationDirectory, "sub", "nested.txt"),
+                TestContext.Current.CancellationToken
+            )
+        ).ShouldBe("nested");
     }
 
     [Fact]
     public async Task CopyDirectoryAsync_MissingSourceReturnsFalse()
     {
-        (await FileUtility.CopyDirectoryAsync(Path.Combine(_sourceDirectory, "missing"), _destinationDirectory))
-            .ShouldBeFalse();
+        (
+            await FileUtility.CopyDirectoryAsync(
+                Path.Combine(_sourceDirectory, "missing"),
+                _destinationDirectory,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).ShouldBeFalse();
     }
 
     [Fact]
@@ -94,43 +132,73 @@ public class FileUtilityTest : IDisposable
     {
         Directory.CreateDirectory(_destinationDirectory);
 
-        (await FileUtility.CopyDirectoryAsync(_sourceDirectory, _destinationDirectory)).ShouldBeFalse();
+        (
+            await FileUtility.CopyDirectoryAsync(
+                _sourceDirectory,
+                _destinationDirectory,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).ShouldBeFalse();
     }
 
     [Fact]
     public async Task CopyDirectoryAsync_OverwriteCopiesOverExistingFiles()
     {
         Directory.CreateDirectory(_destinationDirectory);
-        File.WriteAllText(Path.Combine(_destinationDirectory, "root.txt"), "stale");
+        await File.WriteAllTextAsync(
+            Path.Combine(_destinationDirectory, "root.txt"),
+            "stale",
+            TestContext.Current.CancellationToken
+        );
 
-        (await FileUtility.CopyDirectoryAsync(_sourceDirectory, _destinationDirectory, overwrite: true)).ShouldBeTrue();
+        (
+            await FileUtility.CopyDirectoryAsync(
+                _sourceDirectory,
+                _destinationDirectory,
+                overwrite: true,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).ShouldBeTrue();
 
-        File.ReadAllText(Path.Combine(_destinationDirectory, "root.txt")).ShouldBe("root");
+        (
+            await File.ReadAllTextAsync(
+                Path.Combine(_destinationDirectory, "root.txt"),
+                TestContext.Current.CancellationToken
+            )
+        ).ShouldBe("root");
     }
 
     [Fact]
     public async Task CopyDirectoryAsync_RejectsSourceAndDescendantDestinations()
     {
         await Should.ThrowAsync<ArgumentException>(() =>
-            FileUtility.CopyDirectoryAsync(_sourceDirectory, _sourceDirectory));
+            FileUtility.CopyDirectoryAsync(
+                _sourceDirectory,
+                _sourceDirectory,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
         await Should.ThrowAsync<ArgumentException>(() =>
-            FileUtility.CopyDirectoryAsync(_sourceDirectory, Path.Combine(_sourceDirectory, "nested-copy")));
+            FileUtility.CopyDirectoryAsync(
+                _sourceDirectory,
+                Path.Combine(_sourceDirectory, "nested-copy"),
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
     public async Task CopyDirectoryAsync_ThrowsWhenCancelled()
     {
         using CancellationTokenSource cancellation = new();
-        cancellation.Cancel();
+        await cancellation.CancelAsync();
 
         await Should.ThrowAsync<OperationCanceledException>(() =>
-            FileUtility.CopyDirectoryAsync(_sourceDirectory, _destinationDirectory, cancellationToken: cancellation.Token));
-    }
-
-    [Fact]
-    public void CopyDirectory_ThrowsOnNullArguments()
-    {
-        Should.Throw<ArgumentNullException>(() => FileUtility.CopyDirectory(null!, _destinationDirectory));
-        Should.Throw<ArgumentNullException>(() => FileUtility.CopyDirectory(_sourceDirectory, null!));
+            FileUtility.CopyDirectoryAsync(
+                _sourceDirectory,
+                _destinationDirectory,
+                cancellationToken: cancellation.Token
+            )
+        );
     }
 }

@@ -162,7 +162,7 @@ public sealed class PathMap : IPathWorld
             throw new ArgumentException("Rows must not be empty.", nameof(rows));
         }
 
-        var map = new PathMap(width, lines.Length);
+        PathMap map = new(width, lines.Length);
         for (int y = 0; y < lines.Length; y++)
         {
             if (lines[y].Length != width)
@@ -190,7 +190,10 @@ public sealed class PathMap : IPathWorld
     {
         if (!Contains(x, y))
         {
-            throw new ArgumentOutOfRangeException(nameof(x), $"({x}, {y}) is outside the {Width}x{Height} map.");
+            throw new ArgumentOutOfRangeException(
+                nameof(x),
+                $"({x}, {y}) is outside the {Width}x{Height} map."
+            );
         }
     }
 
@@ -198,7 +201,10 @@ public sealed class PathMap : IPathWorld
     {
         if (point.Layer != 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(point), "This map has no layers; use a stacked map for layer 1 and above.");
+            throw new ArgumentOutOfRangeException(
+                nameof(point),
+                "This map has no layers; use a stacked map for layer 1 and above."
+            );
         }
     }
 }

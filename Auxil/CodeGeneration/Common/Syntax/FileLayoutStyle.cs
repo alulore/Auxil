@@ -10,5 +10,5 @@ public enum FileLayoutStyle
     Module,
 
     /// <summary>GDScript: the file itself is a class (class_name/extends then members).</summary>
-    ScriptClass
+    ScriptClass,
 }

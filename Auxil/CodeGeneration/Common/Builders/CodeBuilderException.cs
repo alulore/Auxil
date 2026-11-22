@@ -10,7 +10,6 @@ public sealed class CodeBuilderException : InvalidOperationException
 {
     /// <summary>Creates a new builder exception with the given message.</summary>
     /// <param name="message">A description of the builder misuse.</param>
-    public CodeBuilderException(string message) : base(message)
-    {
-    }
+    public CodeBuilderException(string message)
+        : base(message) { }
 }

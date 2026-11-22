@@ -40,7 +40,8 @@ public sealed record Notification(string Title)
     public NotificationStatus Status { get; internal init; } = NotificationStatus.Active;
 
     /// <summary>The dismissal reason, or <see cref="NotificationDismissReason.None"/> when not dismissed.</summary>
-    public NotificationDismissReason DismissReason { get; internal init; } = NotificationDismissReason.None;
+    public NotificationDismissReason DismissReason { get; internal init; } =
+        NotificationDismissReason.None;
 
     /// <summary>The data-only actions associated with the notification.</summary>
     public ImmutableArray<NotificationAction> Actions { get; init; } = [];
@@ -49,7 +50,7 @@ public sealed record Notification(string Title)
     public ImmutableArray<string> Tags { get; init; } = [];
 
     /// <summary>The source-defined metadata associated with the notification.</summary>
-    public ImmutableDictionary<string, string> Metadata { get; init; } = ImmutableDictionary<string, string>.Empty;
+    public ImmutableDictionary<string, string> Metadata { get; init; } = [];
 
     /// <summary>Whether the notification is currently active.</summary>
     public bool IsActive => Status == NotificationStatus.Active;

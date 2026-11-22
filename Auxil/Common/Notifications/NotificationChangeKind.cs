@@ -20,5 +20,5 @@ public enum NotificationChangeKind
     Archived,
 
     /// <summary>A notification was removed from the center.</summary>
-    Removed
+    Removed,
 }

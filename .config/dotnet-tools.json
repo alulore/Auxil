@@ -2,12 +2,11 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "jetbrains.resharper.globaltools": {
-      "version": "2026.2.0.2",
+    "csharpier": {
+      "version": "1.4.1",
       "commands": [
-        "jb"
-      ],
-      "rollForward": false
+        "csharpier"
+      ]
     }
   }
 }

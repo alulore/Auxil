@@ -6,12 +6,16 @@ public sealed record CliResult
 {
     /// <summary>The process exit code.</summary>
     public int ExitCode { get; init; }
+
     /// <summary>The captured standard output.</summary>
     public string Output { get; init; } = string.Empty;
+
     /// <summary>The captured standard error output.</summary>
     public string ErrorOutput { get; init; } = string.Empty;
+
     /// <summary>The time the process started.</summary>
     public DateTime StartTime { get; init; }
+
     /// <summary>The time the process exited.</summary>
     public DateTime ExitTime { get; init; }
 

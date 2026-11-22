@@ -10,5 +10,5 @@ public enum ImportStyle
     Using,
 
     /// <summary>Import-from directives, e.g. TypeScript "import { x } from \"y\"".</summary>
-    From
+    From,
 }

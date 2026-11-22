@@ -11,7 +11,12 @@ public sealed class NamespaceScope<TLanguage, TParent> : ScopeBase<TLanguage, TP
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
-    internal NamespaceScope(CodeBuilder<TLanguage> builder, CodeNamespace namespaceNode, TParent parent) : base(builder, namespaceNode, parent)
+    internal NamespaceScope(
+        CodeBuilder<TLanguage> builder,
+        CodeNamespace namespaceNode,
+        TParent parent
+    )
+        : base(builder, namespaceNode, parent)
     {
         NamespaceNode = namespaceNode;
     }
@@ -30,7 +35,11 @@ public sealed class NamespaceScope<TLanguage, TParent> : ScopeBase<TLanguage, TP
     {
         CodeNamespace nested = new() { Name = name };
         NamespaceNode.Children.Add(nested);
-        return new NamespaceScope<TLanguage, NamespaceScope<TLanguage, TParent>>(Builder, nested, this);
+        return new NamespaceScope<TLanguage, NamespaceScope<TLanguage, TParent>>(
+            Builder,
+            nested,
+            this
+        );
     }
 
     /// <summary>Adds a class declaration to the namespace.</summary>

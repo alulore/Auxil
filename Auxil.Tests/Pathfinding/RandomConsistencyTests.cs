@@ -10,68 +10,106 @@ namespace Auxil.Tests.Pathfinding;
 /// </summary>
 public class RandomConsistencyTests
 {
+    private static readonly PathfinderAlgorithm[] Algorithms =
+    [
+        PathfinderAlgorithm.Default,
+        PathfinderAlgorithm.BitboardAStar,
+        PathfinderAlgorithm.JumpPointSearch,
+        PathfinderAlgorithm.JpsPlus,
+    ];
+
+    public static TheoryData<PathfinderAlgorithm, int> Cases => BuildCases();
+
     [Theory]
-    [InlineData(PathfinderAlgorithm.Default)]
-    [InlineData(PathfinderAlgorithm.BitboardAStar)]
-    [InlineData(PathfinderAlgorithm.JumpPointSearch)]
-    [InlineData(PathfinderAlgorithm.JpsPlus)]
-    public void EveryAlgorithm_MatchesAnIndependentDijkstra(PathfinderAlgorithm algorithm)
+    [MemberData(nameof(Cases))]
+    public void EveryAlgorithm_MatchesAnIndependentDijkstra(
+        PathfinderAlgorithm algorithm,
+        int iteration
+    )
     {
-        var random = new Random(20261010 + (int)algorithm);
+        Random random = new(20261010 + (int)algorithm * 100 + iteration);
+        PathMap map = RandomMap(random);
+        List<PathPoint> walkable = WalkableTiles(map);
 
-        for (int iteration = 0; iteration < 8; iteration++)
+        using Pathfinder finder = new(map, algorithm);
+        finder.Options.Smooth = false;
+
+        AssertRandomQueriesMatchReference(finder, map, walkable, random);
+    }
+
+    private static TheoryData<PathfinderAlgorithm, int> BuildCases()
+    {
+        TheoryData<PathfinderAlgorithm, int> cases = [];
+        foreach (PathfinderAlgorithm algorithm in Algorithms)
         {
-            int width = 6 + random.Next(14);
-            int height = 6 + random.Next(14);
-            var map = new PathMap(width, height);
-            for (int x = 0; x < width; x++)
+            for (int iteration = 0; iteration < 8; iteration++)
             {
-                for (int y = 0; y < height; y++)
+                cases.Add(algorithm, iteration);
+            }
+        }
+
+        return cases;
+    }
+
+    private static PathMap RandomMap(Random random)
+    {
+        int width = 6 + random.Next(14);
+        int height = 6 + random.Next(14);
+        PathMap map = new(width, height);
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (random.NextDouble() < 0.25)
                 {
-                    if (random.NextDouble() < 0.25)
-                    {
-                        map.SetBlocked(x, y);
-                    }
+                    map.SetBlocked(x, y);
                 }
             }
+        }
 
-            var walkable = new List<PathPoint>();
-            for (int x = 0; x < width; x++)
+        return map;
+    }
+
+    private static List<PathPoint> WalkableTiles(PathMap map)
+    {
+        List<PathPoint> walkable = [];
+        for (int x = 0; x < map.Width; x++)
+        {
+            for (int y = 0; y < map.Height; y++)
             {
-                for (int y = 0; y < height; y++)
+                if (!map.IsBlocked(x, y))
                 {
-                    if (!map.IsBlocked(x, y))
-                    {
-                        walkable.Add(new PathPoint(x, y));
-                    }
+                    walkable.Add(new PathPoint(x, y));
                 }
             }
+        }
 
-            if (walkable.Count < 2)
+        return walkable;
+    }
+
+    private static void AssertRandomQueriesMatchReference(
+        Pathfinder finder,
+        PathMap map,
+        List<PathPoint> walkable,
+        Random random
+    )
+    {
+        for (int query = 0; query < 6; query++)
+        {
+            PathPoint start = walkable[random.Next(walkable.Count)];
+            PathPoint goal = walkable[random.Next(walkable.Count)];
+            if (start == goal)
             {
                 continue;
             }
 
-            using var finder = new Pathfinder(map, algorithm);
-            finder.Options.Smooth = false;
+            int reference = ReferenceCost(map, start, goal);
+            bool found = finder.TryFindPath(start, goal, out PathResult result);
 
-            for (int query = 0; query < 6; query++)
+            found.ShouldBe(reference >= 0);
+            if (found)
             {
-                PathPoint start = walkable[random.Next(walkable.Count)];
-                PathPoint goal = walkable[random.Next(walkable.Count)];
-                if (start == goal)
-                {
-                    continue;
-                }
-
-                int reference = ReferenceCost(map, start, goal);
-                bool found = finder.TryFindPath(start, goal, out PathResult result);
-
-                found.ShouldBe(reference >= 0);
-                if (found)
-                {
-                    result.Cost.ShouldBe(reference);
-                }
+                result.Cost.ShouldBe(reference);
             }
         }
     }
@@ -81,9 +119,9 @@ public class RandomConsistencyTests
     {
         int width = map.Width;
         int size = width * map.Height;
-        var distance = new int[size];
+        int[] distance = new int[size];
         Array.Fill(distance, int.MaxValue);
-        var queue = new PriorityQueue<int, int>();
+        PriorityQueue<int, int> queue = new();
 
         int startId = start.Y * width + start.X;
         int goalId = goal.Y * width + goal.X;

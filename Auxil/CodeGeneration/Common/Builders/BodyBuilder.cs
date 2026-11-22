@@ -64,7 +64,11 @@ public class BodyBuilder<TLanguage>
     /// <param name="condition">The condition, as a raw expression.</param>
     /// <param name="body">Builds the then-block.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> If(string condition, Action<BodyBuilder<TLanguage>> body, string? id = null)
+    public BodyBuilder<TLanguage> If(
+        string condition,
+        Action<BodyBuilder<TLanguage>> body,
+        string? id = null
+    )
     {
         CodeIf statement = new() { Condition = condition, Id = id };
         ConfigureBlock(statement.Then, body);
@@ -103,9 +107,19 @@ public class BodyBuilder<TLanguage>
     /// <param name="iterable">The iterable, as a raw expression.</param>
     /// <param name="body">Builds the loop body.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> ForEach(string variable, string iterable, Action<BodyBuilder<TLanguage>> body, string? id = null)
+    public BodyBuilder<TLanguage> ForEach(
+        string variable,
+        string iterable,
+        Action<BodyBuilder<TLanguage>> body,
+        string? id = null
+    )
     {
-        CodeForEach statement = new() { Variable = variable, Iterable = iterable, Id = id };
+        CodeForEach statement = new()
+        {
+            Variable = variable,
+            Iterable = iterable,
+            Id = id,
+        };
         ConfigureBlock(statement.Body, body);
         Statements.Add(statement);
         return this;
@@ -115,7 +129,11 @@ public class BodyBuilder<TLanguage>
     /// <param name="condition">The condition, as a raw expression.</param>
     /// <param name="body">Builds the loop body.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> While(string condition, Action<BodyBuilder<TLanguage>> body, string? id = null)
+    public BodyBuilder<TLanguage> While(
+        string condition,
+        Action<BodyBuilder<TLanguage>> body,
+        string? id = null
+    )
     {
         CodeWhile statement = new() { Condition = condition, Id = id };
         ConfigureBlock(statement.Body, body);
@@ -128,9 +146,22 @@ public class BodyBuilder<TLanguage>
     /// <param name="type">An optional type; null lets the language infer (var).</param>
     /// <param name="value">An optional initializer, as a raw expression.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> Var(string name, CodeType? type = null, string? value = null, string? id = null)
+    public BodyBuilder<TLanguage> Var(
+        string name,
+        CodeType? type = null,
+        string? value = null,
+        string? id = null
+    )
     {
-        Statements.Add(new CodeLocalVariable { Name = name, Type = type, Value = value, Id = id });
+        Statements.Add(
+            new CodeLocalVariable
+            {
+                Name = name,
+                Type = type,
+                Value = value,
+                Id = id,
+            }
+        );
         return this;
     }
 
@@ -139,7 +170,12 @@ public class BodyBuilder<TLanguage>
     /// <param name="typeName">The variable type name.</param>
     /// <param name="value">An optional initializer, as a raw expression.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> Var(string name, string typeName, string? value = null, string? id = null)
+    public BodyBuilder<TLanguage> Var(
+        string name,
+        string typeName,
+        string? value = null,
+        string? id = null
+    )
     {
         return Var(name, CodeType.Of(typeName), value, id);
     }
@@ -149,9 +185,23 @@ public class BodyBuilder<TLanguage>
     /// <param name="type">An optional type.</param>
     /// <param name="value">An optional initializer, as a raw expression.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> Const(string name, CodeType? type = null, string? value = null, string? id = null)
+    public BodyBuilder<TLanguage> Const(
+        string name,
+        CodeType? type = null,
+        string? value = null,
+        string? id = null
+    )
     {
-        Statements.Add(new CodeLocalVariable { Name = name, Type = type, Value = value, IsConst = true, Id = id });
+        Statements.Add(
+            new CodeLocalVariable
+            {
+                Name = name,
+                Type = type,
+                Value = value,
+                IsConst = true,
+                Id = id,
+            }
+        );
         return this;
     }
 
@@ -160,7 +210,12 @@ public class BodyBuilder<TLanguage>
     /// <param name="typeName">The constant type name.</param>
     /// <param name="value">An optional initializer, as a raw expression.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> Const(string name, string typeName, string? value = null, string? id = null)
+    public BodyBuilder<TLanguage> Const(
+        string name,
+        string typeName,
+        string? value = null,
+        string? id = null
+    )
     {
         return Const(name, CodeType.Of(typeName), value, id);
     }
@@ -184,9 +239,19 @@ public class BodyBuilder<TLanguage>
     /// <param name="body">Builds the block body.</param>
     /// <param name="close">Text appended to the closing token, or null to close bare.</param>
     /// <param name="id">An optional id for surgical editing.</param>
-    public BodyBuilder<TLanguage> Block(string header, Action<BodyBuilder<TLanguage>> body, string? close = null, string? id = null)
+    public BodyBuilder<TLanguage> Block(
+        string header,
+        Action<BodyBuilder<TLanguage>> body,
+        string? close = null,
+        string? id = null
+    )
     {
-        CodeRawBlock statement = new() { Header = header, CloseSuffix = close, Id = id };
+        CodeRawBlock statement = new()
+        {
+            Header = header,
+            CloseSuffix = close,
+            Id = id,
+        };
         ConfigureBlock(statement.Body, body);
         Statements.Add(statement);
         return this;
@@ -218,7 +283,10 @@ public class BodyBuilder<TLanguage>
         throw new CodeBuilderException("ElseIf/Else requires a preceding If statement.");
     }
 
-    private void ConfigureBlock(List<CodeStatement> target, Action<BodyBuilder<TLanguage>> configure)
+    private static void ConfigureBlock(
+        List<CodeStatement> target,
+        Action<BodyBuilder<TLanguage>> configure
+    )
     {
         BodyBuilder<TLanguage> bodyBuilder = new(target);
         configure(bodyBuilder);

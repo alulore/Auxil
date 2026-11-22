@@ -7,13 +7,15 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// makes it get-only, and Getter()/Setter() add accessor bodies.
 /// </summary>
 [PublicAPI]
-public sealed class PropertyScope<TLanguage, TParent> : DeclarationScope<TLanguage, PropertyScope<TLanguage, TParent>, TParent>
+public sealed class PropertyScope<TLanguage, TParent>
+    : DeclarationScope<TLanguage, PropertyScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
     private readonly CodeProperty _property;
 
-    internal PropertyScope(CodeBuilder<TLanguage> builder, CodeProperty property, TParent parent) : base(builder, property, parent)
+    internal PropertyScope(CodeBuilder<TLanguage> builder, CodeProperty property, TParent parent)
+        : base(builder, property, parent)
     {
         _property = property;
     }

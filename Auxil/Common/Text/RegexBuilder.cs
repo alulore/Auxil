@@ -196,12 +196,18 @@ public class RegexBuilder
     {
         if (min > max)
         {
-            throw new ArgumentOutOfRangeException(nameof(min), "Min value cannot be smaller than max value.");
+            throw new ArgumentOutOfRangeException(
+                nameof(min),
+                "Min value cannot be smaller than max value."
+            );
         }
 
         if (min < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(min), "Min value cannot be smaller than 0.");
+            throw new ArgumentOutOfRangeException(
+                nameof(min),
+                "Min value cannot be smaller than 0."
+            );
         }
 
         _sbPattern.Append('{').Append(min).Append(',').Append(max).Append('}');
@@ -301,7 +307,11 @@ public class RegexBuilder
     {
         string pattern = GetRegexPattern();
 
-        if (_lastPattern == pattern && _lastOptions == _regexOptions && _lastTimeout == _regexTimeout)
+        if (
+            _lastPattern == pattern
+            && _lastOptions == _regexOptions
+            && _lastTimeout == _regexTimeout
+        )
         {
             return _regex;
         }
@@ -316,11 +326,7 @@ public class RegexBuilder
 
     /// <summary>Returns the currently constructed pattern including anchors.</summary>
     public string GetRegexPattern() =>
-        new StringBuilder()
-            .Append(_sbPrefix)
-            .Append(_sbPattern)
-            .Append(_sbSuffix)
-            .ToString();
+        new StringBuilder().Append(_sbPrefix).Append(_sbPattern).Append(_sbSuffix).ToString();
 
     /// <summary>Appends a regex library pattern verbatim, without escaping.</summary>
     /// <param name="regexLibraryPattern">The pattern fragment to append.</param>
@@ -395,7 +401,8 @@ public class RegexBuilder
     /// <summary>Replaces matches in the input with the replacement text.</summary>
     /// <param name="input">The input text.</param>
     /// <param name="replacement">The replacement text.</param>
-    public string Replace(string input, string replacement) => GetRegex().Replace(input, replacement);
+    public string Replace(string input, string replacement) =>
+        GetRegex().Replace(input, replacement);
 
     /// <summary>Sets the regex options used when compiling the pattern.</summary>
     /// <param name="options">The regex options.</param>

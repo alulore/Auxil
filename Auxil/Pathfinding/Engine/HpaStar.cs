@@ -21,53 +21,55 @@ internal sealed class HpaStar : IPathFinder
     private const long IntraEdgeBudget = 24_000_000;
 
     private readonly int _clusterSize;
-    private Grid _grid = null!;
-    private byte[] _cells = null!;
-    private int _width, _height, _layerSize, _layerCount, _nodeCount;
-    private int _clusterColumns, _clusterRows;
+    private Grid _grid = Grid.Empty;
+    private byte[] _cells = [];
+    private int _width,
+        _height,
+        _layerSize,
+        _layerCount,
+        _nodeCount;
+    private int _clusterColumns,
+        _clusterRows;
 
-    // Cluster layout.
-    private int[] _clusterOfCell = null!;
+    private int[] _clusterOfCell = [];
 
-    // Entrances.
-    private int[] _entranceIndexByCell = null!;
-    private int[] _entranceCells = null!;
+    private int[] _entranceIndexByCell = [];
+    private int[] _entranceCells = [];
     private int _entranceCount;
 
-    // Cross-border edges between entrances of adjacent clusters (CSR).
-    private int[] _crossEdgeStart = null!;
-    private int[] _crossEdgeTarget = null!;
-    private int[] _crossEdgeCost = null!;
+    private int[] _crossEdgeStart = [];
+    private int[] _crossEdgeTarget = [];
+    private int[] _crossEdgeCost = [];
 
-    // Entrances per cluster (CSR).
-    private int[] _clusterEntranceStart = null!;
-    private int[] _clusterEntrances = null!;
+    private int[] _clusterEntranceStart = [];
+    private int[] _clusterEntrances = [];
 
-    // Intra-cluster edges between entrances (CSR), either complete or truncated.
+    /// <summary>False when the truncated table would not fit, so each expansion runs its own Dijkstra instead.</summary>
     private bool _usePrecomputedIntraEdges;
-    private int[] _intraEdgeStart = null!;
-    private int[] _intraEdgeTarget = null!;
-    private int[] _intraEdgeCost = null!;
-    private int[] _selectionCosts = null!;
-    private int[] _selectionEntrances = null!;
+    private int[] _intraEdgeStart = [];
+    private int[] _intraEdgeTarget = [];
+    private int[] _intraEdgeCost = [];
+    private int[] _selectionCosts = [];
+    private int[] _selectionEntrances = [];
 
-    // Query scratch: cluster-bounded Dijkstra.
-    private int[] _localCost = null!;
-    private int[] _localGeneration = null!;
-    private int[] _localClosedGeneration = null!;
-    private int[] _localParent = null!;
+    private int[] _localCost = [];
+    private int[] _localGeneration = [];
+    private int[] _localClosedGeneration = [];
+    private int[] _localParent = [];
     private int _localSearchGeneration;
     private DialBucketsLazy _localQueue;
 
-    // Query scratch: abstract search.
-    private int[] _abstractCost = null!;
-    private int[] _abstractCostGeneration = null!;
-    private int[] _abstractFScore = null!;
-    private int[] _abstractOpenGeneration = null!;
-    private int[] _abstractClosedGeneration = null!;
-    private int[] _abstractParent = null!;
+    private int[] _abstractCost = [];
+    private int[] _abstractCostGeneration = [];
+    private int[] _abstractFScore = [];
+    private int[] _abstractOpenGeneration = [];
+    private int[] _abstractClosedGeneration = [];
+    private int[] _abstractParent = [];
     private int _abstractSearchGeneration;
-    private int _startCell, _startCluster, _goalCluster, _goalCell;
+    private int _startCell,
+        _startCluster,
+        _goalCluster,
+        _goalCell;
     private int _bestRouteCost;
     private int _bestEndEntrance;
     private bool _directSameCluster;
@@ -75,9 +77,8 @@ internal sealed class HpaStar : IPathFinder
     private long _abstractExpansions;
     private DialHeapIndexed _abstractQueue;
 
-    // Route reconstruction scratch.
-    private List<int> _localPathScratch = null!;
-    private List<int> _abstractChainScratch = null!;
+    private List<int> _localPathScratch = [];
+    private List<int> _abstractChainScratch = [];
 
     public HpaStar(int clusterSize)
     {
@@ -106,19 +107,32 @@ internal sealed class HpaStar : IPathFinder
 
     public void Release()
     {
-        _clusterOfCell = null!;
-        _entranceIndexByCell = null!; _entranceCells = null!;
-        _crossEdgeStart = null!; _crossEdgeTarget = null!; _crossEdgeCost = null!;
-        _clusterEntranceStart = null!; _clusterEntrances = null!;
-        _intraEdgeStart = null!; _intraEdgeTarget = null!; _intraEdgeCost = null!;
-        _selectionCosts = null!; _selectionEntrances = null!;
-        _localCost = null!; _localGeneration = null!; _localClosedGeneration = null!; _localParent = null!;
-        _abstractCost = null!; _abstractCostGeneration = null!; _abstractFScore = null!;
-        _abstractOpenGeneration = null!; _abstractClosedGeneration = null!; _abstractParent = null!;
-        _localPathScratch = null!; _abstractChainScratch = null!;
+        _clusterOfCell = [];
+        _entranceIndexByCell = [];
+        _entranceCells = [];
+        _crossEdgeStart = [];
+        _crossEdgeTarget = [];
+        _crossEdgeCost = [];
+        _clusterEntranceStart = [];
+        _clusterEntrances = [];
+        _intraEdgeStart = [];
+        _intraEdgeTarget = [];
+        _intraEdgeCost = [];
+        _selectionCosts = [];
+        _selectionEntrances = [];
+        _localCost = [];
+        _localGeneration = [];
+        _localClosedGeneration = [];
+        _localParent = [];
+        _abstractCost = [];
+        _abstractCostGeneration = [];
+        _abstractFScore = [];
+        _abstractOpenGeneration = [];
+        _abstractClosedGeneration = [];
+        _abstractParent = [];
+        _localPathScratch = [];
+        _abstractChainScratch = [];
     }
-
-    // ------------------------------------------------------------------ preprocessing
 
     private void BuildClusterLayout()
     {
@@ -128,7 +142,8 @@ internal sealed class HpaStar : IPathFinder
             int x = cell % _width;
             int y = (cell % _layerSize) / _width;
             int z = cell / _layerSize;
-            _clusterOfCell[cell] = (z * _clusterRows + y / _clusterSize) * _clusterColumns + x / _clusterSize;
+            _clusterOfCell[cell] =
+                (z * _clusterRows + y / _clusterSize) * _clusterColumns + x / _clusterSize;
         }
     }
 
@@ -137,11 +152,17 @@ internal sealed class HpaStar : IPathFinder
         _entranceIndexByCell = new int[_nodeCount];
         Array.Fill(_entranceIndexByCell, -1);
 
-        var entrances = new List<int>();
+        List<int> entrances = [];
         for (int cell = 0; cell < _nodeCount; cell++)
         {
-            if (_cells[cell] == Grid.Blocked) continue;
-            if (!HasCrossClusterNeighbor(cell)) continue;
+            if (_cells[cell] == Grid.Blocked)
+            {
+                continue;
+            }
+            if (!HasCrossClusterNeighbor(cell))
+            {
+                continue;
+            }
             _entranceIndexByCell[cell] = entrances.Count;
             entrances.Add(cell);
         }
@@ -153,16 +174,20 @@ internal sealed class HpaStar : IPathFinder
     private void BuildClusterEntranceLists()
     {
         int clusterCount = _clusterColumns * _clusterRows * _layerCount;
-        var counts = new int[clusterCount];
+        int[] counts = new int[clusterCount];
         for (int entrance = 0; entrance < _entranceCount; entrance++)
+        {
             counts[_clusterOfCell[_entranceCells[entrance]]]++;
+        }
 
         _clusterEntranceStart = new int[clusterCount + 1];
         for (int cluster = 0; cluster < clusterCount; cluster++)
+        {
             _clusterEntranceStart[cluster + 1] = _clusterEntranceStart[cluster] + counts[cluster];
+        }
 
         _clusterEntrances = new int[_entranceCount];
-        var cursors = new int[clusterCount];
+        int[] cursors = new int[clusterCount];
         Array.Copy(_clusterEntranceStart, cursors, clusterCount);
         for (int entrance = 0; entrance < _entranceCount; entrance++)
         {
@@ -173,19 +198,23 @@ internal sealed class HpaStar : IPathFinder
 
     private void BuildCrossClusterEdges()
     {
-        var degrees = new int[_entranceCount];
+        int[] degrees = new int[_entranceCount];
         for (int entrance = 0; entrance < _entranceCount; entrance++)
+        {
             degrees[entrance] = CountCrossClusterNeighbors(_entranceCells[entrance]);
+        }
 
         _crossEdgeStart = new int[_entranceCount + 1];
         for (int entrance = 0; entrance < _entranceCount; entrance++)
+        {
             _crossEdgeStart[entrance + 1] = _crossEdgeStart[entrance] + degrees[entrance];
+        }
 
         int edgeCount = _crossEdgeStart[_entranceCount];
         _crossEdgeTarget = new int[edgeCount];
         _crossEdgeCost = new int[edgeCount];
 
-        var cursors = new int[_entranceCount];
+        int[] cursors = new int[_entranceCount];
         Array.Copy(_crossEdgeStart, cursors, _entranceCount);
         for (int entrance = 0; entrance < _entranceCount; entrance++)
         {
@@ -198,8 +227,14 @@ internal sealed class HpaStar : IPathFinder
 
             for (int direction = 0; direction < directionCount; direction++)
             {
-                if (!_grid.TryStep(cell, x, y, z, direction, out int neighborId)) continue;
-                if (_clusterOfCell[neighborId] == cluster) continue;
+                if (!_grid.TryStep(cell, x, y, z, direction, out int neighborId))
+                {
+                    continue;
+                }
+                if (_clusterOfCell[neighborId] == cluster)
+                {
+                    continue;
+                }
                 _crossEdgeTarget[cursors[entrance]] = _entranceIndexByCell[neighborId];
                 _crossEdgeCost[cursors[entrance]] = Grid.MoveCost[direction];
                 cursors[entrance]++;
@@ -223,8 +258,8 @@ internal sealed class HpaStar : IPathFinder
         _abstractParent = new int[_entranceCount];
         _abstractSearchGeneration = 0;
 
-        _localPathScratch = new List<int>(1024);
-        _abstractChainScratch = new List<int>(64);
+        _localPathScratch = [with(1024)];
+        _abstractChainScratch = [with(64)];
 
         _localQueue = new DialBucketsLazy(1024);
         _localQueue.Init(_grid);
@@ -256,6 +291,10 @@ internal sealed class HpaStar : IPathFinder
         PrecomputeTruncatedIntraEdges(clusterCount);
     }
 
+    /// <summary>
+    /// Costs are symmetric, so one Dijkstra per entrance fills both directions of each pair.
+    /// Unreachable pairs leave slots empty; those are marked with an infinite sentinel.
+    /// </summary>
     private void PrecomputeAllIntraEdges(int clusterCount)
     {
         _usePrecomputedIntraEdges = true;
@@ -271,15 +310,17 @@ internal sealed class HpaStar : IPathFinder
         _intraEdgeTarget = new int[cursor];
         _intraEdgeCost = new int[cursor];
 
-        // Costs are symmetric, so one Dijkstra per entrance fills both directions of each pair.
-        var writeCursors = new int[_entranceCount];
+        int[] writeCursors = new int[_entranceCount];
         Array.Copy(_intraEdgeStart, writeCursors, _entranceCount);
 
         for (int cluster = 0; cluster < clusterCount; cluster++)
         {
             int first = _clusterEntranceStart[cluster];
             int last = _clusterEntranceStart[cluster + 1];
-            if (last - first <= 1) continue;
+            if (last - first <= 1)
+            {
+                continue;
+            }
 
             for (int i = first; i < last; i++)
             {
@@ -289,7 +330,10 @@ internal sealed class HpaStar : IPathFinder
                 {
                     int other = _clusterEntrances[j];
                     int cost = LocalCostAt(_entranceCells[other], generation);
-                    if (cost == int.MaxValue) continue;
+                    if (cost == int.MaxValue)
+                    {
+                        continue;
+                    }
                     _intraEdgeTarget[writeCursors[entrance]] = other;
                     _intraEdgeCost[writeCursors[entrance]] = cost;
                     writeCursors[entrance]++;
@@ -300,7 +344,6 @@ internal sealed class HpaStar : IPathFinder
             }
         }
 
-        // Unreachable pairs leave slots empty; mark them with an infinite sentinel.
         for (int entrance = 0; entrance < _entranceCount; entrance++)
         {
             for (int slot = writeCursors[entrance]; slot < _intraEdgeStart[entrance + 1]; slot++)
@@ -316,14 +359,16 @@ internal sealed class HpaStar : IPathFinder
         long edgeCount = (long)_entranceCount * TruncatedNeighborsPerEntrance;
         if (edgeCount > int.MaxValue - 16)
         {
-            _usePrecomputedIntraEdges = false; // fall back to a Dijkstra per expansion
+            _usePrecomputedIntraEdges = false;
             return;
         }
 
         _usePrecomputedIntraEdges = true;
         _intraEdgeStart = new int[_entranceCount + 1];
         for (int entrance = 0; entrance <= _entranceCount; entrance++)
+        {
             _intraEdgeStart[entrance] = entrance * TruncatedNeighborsPerEntrance;
+        }
         _intraEdgeTarget = new int[(int)edgeCount];
         _intraEdgeCost = new int[(int)edgeCount];
         Array.Fill(_intraEdgeTarget, -1);
@@ -335,57 +380,67 @@ internal sealed class HpaStar : IPathFinder
         {
             int first = _clusterEntranceStart[cluster];
             int last = _clusterEntranceStart[cluster + 1];
-            if (last - first <= 1) continue;
+            if (last - first <= 1)
+            {
+                continue;
+            }
 
             for (int i = first; i < last; i++)
             {
-                int entrance = _clusterEntrances[i];
-                RunLocalDijkstra(_entranceCells[entrance], cluster, out int generation);
-
-                // Keep the nearest K entrances (insertion selection, K is tiny).
-                int count = 0;
-                for (int j = first; j < last; j++)
-                {
-                    if (i == j) continue;
-                    int other = _clusterEntrances[j];
-                    int cost = LocalCostAt(_entranceCells[other], generation);
-                    if (cost == int.MaxValue) continue;
-
-                    if (count < TruncatedNeighborsPerEntrance)
-                    {
-                        int position = count++;
-                        while (position > 0 && _selectionCosts[position - 1] > cost)
-                        {
-                            _selectionCosts[position] = _selectionCosts[position - 1];
-                            _selectionEntrances[position] = _selectionEntrances[position - 1];
-                            position--;
-                        }
-                        _selectionCosts[position] = cost;
-                        _selectionEntrances[position] = other;
-                    }
-                    else if (cost < _selectionCosts[TruncatedNeighborsPerEntrance - 1])
-                    {
-                        int position = TruncatedNeighborsPerEntrance - 1;
-                        while (position > 0 && _selectionCosts[position - 1] > cost)
-                        {
-                            _selectionCosts[position] = _selectionCosts[position - 1];
-                            _selectionEntrances[position] = _selectionEntrances[position - 1];
-                            position--;
-                        }
-                        _selectionCosts[position] = cost;
-                        _selectionEntrances[position] = other;
-                    }
-                }
-
-                int write = _intraEdgeStart[entrance];
-                for (int n = 0; n < count; n++)
-                {
-                    _intraEdgeTarget[write] = _selectionEntrances[n];
-                    _intraEdgeCost[write] = _selectionCosts[n];
-                    write++;
-                }
+                PrecomputeTruncatedEdgesFrom(i, cluster, first, last);
             }
         }
+    }
+
+    private void PrecomputeTruncatedEdgesFrom(int i, int cluster, int first, int last)
+    {
+        int entrance = _clusterEntrances[i];
+        RunLocalDijkstra(_entranceCells[entrance], cluster, out int generation);
+
+        int count = 0;
+        for (int j = first; j < last; j++)
+        {
+            if (i == j)
+            {
+                continue;
+            }
+            int other = _clusterEntrances[j];
+            int cost = LocalCostAt(_entranceCells[other], generation);
+            if (cost == int.MaxValue)
+            {
+                continue;
+            }
+
+            if (count < TruncatedNeighborsPerEntrance)
+            {
+                InsertSelection(count++, cost, other);
+            }
+            else if (cost < _selectionCosts[TruncatedNeighborsPerEntrance - 1])
+            {
+                InsertSelection(TruncatedNeighborsPerEntrance - 1, cost, other);
+            }
+        }
+
+        int write = _intraEdgeStart[entrance];
+        for (int n = 0; n < count; n++)
+        {
+            _intraEdgeTarget[write] = _selectionEntrances[n];
+            _intraEdgeCost[write] = _selectionCosts[n];
+            write++;
+        }
+    }
+
+    /// <summary>Keeps the nearest K entrances by insertion selection; K is tiny.</summary>
+    private void InsertSelection(int position, int cost, int entrance)
+    {
+        while (position > 0 && _selectionCosts[position - 1] > cost)
+        {
+            _selectionCosts[position] = _selectionCosts[position - 1];
+            _selectionEntrances[position] = _selectionEntrances[position - 1];
+            position--;
+        }
+        _selectionCosts[position] = cost;
+        _selectionEntrances[position] = entrance;
     }
 
     private bool HasCrossClusterNeighbor(int cell)
@@ -397,7 +452,13 @@ internal sealed class HpaStar : IPathFinder
         int directionCount = _layerCount > 1 ? Grid.DirectionCount : Grid.InPlaneDirectionCount;
         for (int direction = 0; direction < directionCount; direction++)
         {
-            if (_grid.TryStep(cell, x, y, z, direction, out int neighborId) && _clusterOfCell[neighborId] != cluster) return true;
+            if (
+                _grid.TryStep(cell, x, y, z, direction, out int neighborId)
+                && _clusterOfCell[neighborId] != cluster
+            )
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -412,12 +473,16 @@ internal sealed class HpaStar : IPathFinder
         int directionCount = _layerCount > 1 ? Grid.DirectionCount : Grid.InPlaneDirectionCount;
         for (int direction = 0; direction < directionCount; direction++)
         {
-            if (_grid.TryStep(cell, x, y, z, direction, out int neighborId) && _clusterOfCell[neighborId] != cluster) count++;
+            if (
+                _grid.TryStep(cell, x, y, z, direction, out int neighborId)
+                && _clusterOfCell[neighborId] != cluster
+            )
+            {
+                count++;
+            }
         }
         return count;
     }
-
-    // ------------------------------------------------------------------ query
 
     public bool FindPath(int start, int goal, out int cost, out int expanded)
     {
@@ -439,6 +504,31 @@ internal sealed class HpaStar : IPathFinder
         _goalCell = goal;
         _bestRouteCost = int.MaxValue;
 
+        int generation = NextAbstractGeneration();
+        _abstractQueue.Clear();
+
+        RunLocalDijkstra(goal, _goalCluster, out int goalLocalGeneration);
+
+        if (TrySolveInsideGoalCluster(start, goalLocalGeneration, out cost))
+        {
+            return true;
+        }
+
+        SeedAbstractSearch(start, generation);
+        RunAbstractSearch(generation, goalLocalGeneration);
+
+        expanded = (int)Math.Min(_abstractExpansions, int.MaxValue);
+        if (_bestRouteCost == int.MaxValue)
+        {
+            return false;
+        }
+        _hasResult = true;
+        cost = _bestRouteCost;
+        return true;
+    }
+
+    private int NextAbstractGeneration()
+    {
         int generation = ++_abstractSearchGeneration;
         if (generation == int.MaxValue)
         {
@@ -447,38 +537,63 @@ internal sealed class HpaStar : IPathFinder
             Array.Clear(_abstractClosedGeneration);
             generation = _abstractSearchGeneration = 1;
         }
-        _abstractQueue.Clear();
 
-        // Distances from the goal inside its own cluster, used to finish at the goal cluster.
-        RunLocalDijkstra(goal, _goalCluster, out int goalLocalGeneration);
+        return generation;
+    }
 
-        if (_startCluster == _goalCluster)
+    private bool TrySolveInsideGoalCluster(int start, int goalLocalGeneration, out int cost)
+    {
+        cost = 0;
+        if (_startCluster != _goalCluster)
         {
-            int directCost = LocalCostAt(start, goalLocalGeneration);
-            if (directCost != int.MaxValue)
-            {
-                _directSameCluster = true;
-                _bestRouteCost = directCost;
-                _hasResult = true;
-                cost = directCost;
-                return true;
-            }
+            return false;
         }
 
-        // Seed the abstract search with the entrances of the start cluster.
+        int directCost = LocalCostAt(start, goalLocalGeneration);
+        if (directCost == int.MaxValue)
+        {
+            return false;
+        }
+
+        _directSameCluster = true;
+        _bestRouteCost = directCost;
+        _hasResult = true;
+        cost = directCost;
+        return true;
+    }
+
+    private void SeedAbstractSearch(int start, int generation)
+    {
         RunLocalDijkstra(start, _startCluster, out int startLocalGeneration);
-        for (int i = _clusterEntranceStart[_startCluster]; i < _clusterEntranceStart[_startCluster + 1]; i++)
+        for (
+            int i = _clusterEntranceStart[_startCluster];
+            i < _clusterEntranceStart[_startCluster + 1];
+            i++
+        )
         {
             int entrance = _clusterEntrances[i];
             int entranceCost = LocalCostAt(_entranceCells[entrance], startLocalGeneration);
-            if (entranceCost != int.MaxValue) RelaxEntrance(entrance, entranceCost, generation, -1);
+            if (entranceCost != int.MaxValue)
+            {
+                RelaxEntrance(entrance, entranceCost, generation, -1);
+            }
         }
+    }
 
+    /// <summary>The abstract queue pops in non-decreasing order, so the search stops at the first entrance that cannot beat the best route.</summary>
+    private void RunAbstractSearch(int generation, int goalLocalGeneration)
+    {
         while (_abstractQueue.Count > 0)
         {
             int entrance = _abstractQueue.Pop(out int fScore);
-            if (fScore >= _bestRouteCost) break; // dial pops in non-decreasing order
-            if (_abstractClosedGeneration[entrance] == generation) continue;
+            if (fScore >= _bestRouteCost)
+            {
+                break;
+            }
+            if (_abstractClosedGeneration[entrance] == generation)
+            {
+                continue;
+            }
             _abstractClosedGeneration[entrance] = generation;
             _abstractExpansions++;
 
@@ -488,50 +603,77 @@ internal sealed class HpaStar : IPathFinder
 
             if (cluster == _goalCluster)
             {
-                int costToGoal = LocalCostAt(cell, goalLocalGeneration);
-                if (costToGoal != int.MaxValue)
-                {
-                    int candidate = entranceCost + costToGoal;
-                    if (candidate < _bestRouteCost)
-                    {
-                        _bestRouteCost = candidate;
-                        _bestEndEntrance = entrance;
-                    }
-                }
+                UpdateBestRoute(entrance, entranceCost, LocalCostAt(cell, goalLocalGeneration));
             }
 
             for (int slot = _crossEdgeStart[entrance]; slot < _crossEdgeStart[entrance + 1]; slot++)
-                RelaxEntrance(_crossEdgeTarget[slot], entranceCost + _crossEdgeCost[slot], generation, entrance);
+            {
+                RelaxEntrance(
+                    _crossEdgeTarget[slot],
+                    entranceCost + _crossEdgeCost[slot],
+                    generation,
+                    entrance
+                );
+            }
 
             if (_usePrecomputedIntraEdges)
             {
-                for (int slot = _intraEdgeStart[entrance]; slot < _intraEdgeStart[entrance + 1]; slot++)
-                {
-                    int edgeCost = _intraEdgeCost[slot];
-                    if (edgeCost >= int.MaxValue / 4) continue;
-                    RelaxEntrance(_intraEdgeTarget[slot], entranceCost + edgeCost, generation, entrance);
-                }
+                RelaxPrecomputedIntraEdges(entrance, entranceCost, generation);
             }
             else
             {
-                // Lazy fallback: one cluster-bounded Dijkstra per expansion.
-                RunLocalDijkstra(cell, cluster, out int localGeneration);
-                for (int i = _clusterEntranceStart[cluster]; i < _clusterEntranceStart[cluster + 1]; i++)
-                {
-                    int other = _clusterEntrances[i];
-                    if (other == entrance) continue;
-                    int stepCost = LocalCostAt(_entranceCells[other], localGeneration);
-                    if (stepCost == int.MaxValue) continue;
-                    RelaxEntrance(other, entranceCost + stepCost, generation, entrance);
-                }
+                RelaxLazyIntraEdges(entrance, entranceCost, generation);
             }
         }
+    }
 
-        expanded = (int)Math.Min(_abstractExpansions, int.MaxValue);
-        if (_bestRouteCost == int.MaxValue) return false;
-        _hasResult = true;
-        cost = _bestRouteCost;
-        return true;
+    private void UpdateBestRoute(int entrance, int entranceCost, int costToGoal)
+    {
+        if (costToGoal == int.MaxValue)
+        {
+            return;
+        }
+
+        int candidate = entranceCost + costToGoal;
+        if (candidate < _bestRouteCost)
+        {
+            _bestRouteCost = candidate;
+            _bestEndEntrance = entrance;
+        }
+    }
+
+    private void RelaxPrecomputedIntraEdges(int entrance, int entranceCost, int generation)
+    {
+        for (int slot = _intraEdgeStart[entrance]; slot < _intraEdgeStart[entrance + 1]; slot++)
+        {
+            int edgeCost = _intraEdgeCost[slot];
+            if (edgeCost >= int.MaxValue / 4)
+            {
+                continue;
+            }
+            RelaxEntrance(_intraEdgeTarget[slot], entranceCost + edgeCost, generation, entrance);
+        }
+    }
+
+    private void RelaxLazyIntraEdges(int entrance, int entranceCost, int generation)
+    {
+        int cell = _entranceCells[entrance];
+        int cluster = _clusterOfCell[cell];
+        RunLocalDijkstra(cell, cluster, out int localGeneration);
+        for (int i = _clusterEntranceStart[cluster]; i < _clusterEntranceStart[cluster + 1]; i++)
+        {
+            int other = _clusterEntrances[i];
+            if (other == entrance)
+            {
+                continue;
+            }
+            int stepCost = LocalCostAt(_entranceCells[other], localGeneration);
+            if (stepCost == int.MaxValue)
+            {
+                continue;
+            }
+            RelaxEntrance(other, entranceCost + stepCost, generation, entrance);
+        }
     }
 
     /// <summary>
@@ -542,7 +684,6 @@ internal sealed class HpaStar : IPathFinder
     /// </summary>
     internal void CollectPath(List<int> path)
     {
-        ArgumentNullException.ThrowIfNull(path);
         path.Clear();
         if (!_hasResult)
         {
@@ -568,7 +709,6 @@ internal sealed class HpaStar : IPathFinder
             return;
         }
 
-        // Walk the abstract chain back to a start-cluster seed.
         _abstractChainScratch.Clear();
         for (int entrance = _bestEndEntrance; entrance != -1; entrance = _abstractParent[entrance])
         {
@@ -592,7 +732,7 @@ internal sealed class HpaStar : IPathFinder
             }
             else
             {
-                path.Add(to); // cross-border edges are single steps
+                path.Add(to);
             }
         }
 
@@ -613,7 +753,6 @@ internal sealed class HpaStar : IPathFinder
             }
         }
 
-        // The path already ends with `from`; emit everything after it, up to `to`.
         for (int i = _localPathScratch.Count - 2; i >= 0; i--)
         {
             path.Add(_localPathScratch[i]);
@@ -636,15 +775,30 @@ internal sealed class HpaStar : IPathFinder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void RelaxEntrance(int entrance, int cost, int generation, int parent)
     {
-        if (_abstractClosedGeneration[entrance] == generation) return;
-        if (_abstractCostGeneration[entrance] == generation && cost >= _abstractCost[entrance]) return;
+        if (_abstractClosedGeneration[entrance] == generation)
+        {
+            return;
+        }
+        if (_abstractCostGeneration[entrance] == generation && cost >= _abstractCost[entrance])
+        {
+            return;
+        }
 
         _abstractCost[entrance] = cost;
         _abstractCostGeneration[entrance] = generation;
         _abstractParent[entrance] = parent;
 
         int cell = _entranceCells[entrance];
-        int fScore = cost + _grid.Heuristic(cell % _width, (cell % _layerSize) / _width, cell / _layerSize, _goalCell % _width, (_goalCell % _layerSize) / _width, _goalCell / _layerSize);
+        int fScore =
+            cost
+            + Grid.Heuristic(
+                cell % _width,
+                (cell % _layerSize) / _width,
+                cell / _layerSize,
+                _goalCell % _width,
+                (_goalCell % _layerSize) / _width,
+                _goalCell / _layerSize
+            );
         if (_abstractOpenGeneration[entrance] != generation)
         {
             _abstractOpenGeneration[entrance] = generation;
@@ -685,7 +839,10 @@ internal sealed class HpaStar : IPathFinder
         while (_localQueue.Count > 0)
         {
             int current = _localQueue.Pop(out _);
-            if (localClosed[current] == generation) continue;
+            if (localClosed[current] == generation)
+            {
+                continue;
+            }
             localClosed[current] = generation;
             int currentCost = localCost[current];
 
@@ -696,8 +853,14 @@ internal sealed class HpaStar : IPathFinder
 
             for (int direction = 0; direction < directionCount; direction++)
             {
-                if (!_grid.TryStep(current, x, y, z, direction, out int neighborId)) continue;
-                if (_clusterOfCell[neighborId] != cluster) continue;
+                if (!_grid.TryStep(current, x, y, z, direction, out int neighborId))
+                {
+                    continue;
+                }
+                if (_clusterOfCell[neighborId] != cluster)
+                {
+                    continue;
+                }
                 int newCost = currentCost + Grid.MoveCost[direction];
                 if (localGeneration[neighborId] != generation || newCost < localCost[neighborId])
                 {

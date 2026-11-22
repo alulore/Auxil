@@ -18,9 +18,20 @@ public static class InterfaceScopeFeatures
         /// <param name="name">The type parameter name, e.g. "T".</param>
         /// <param name="constraint">An optional constraint (rendered per language).</param>
         /// <param name="defaultValue">An optional default type argument (TypeScript only).</param>
-        public InterfaceScope<TLanguage, TParent> Generic(string name, string? constraint = null, string? defaultValue = null)
+        public InterfaceScope<TLanguage, TParent> Generic(
+            string name,
+            string? constraint = null,
+            string? defaultValue = null
+        )
         {
-            scope.InterfaceNode.Generics.Add(new CodeGenericParameter { Name = name, Constraint = constraint, DefaultValue = defaultValue });
+            scope.InterfaceNode.Generics.Add(
+                new CodeGenericParameter
+                {
+                    Name = name,
+                    Constraint = constraint,
+                    DefaultValue = defaultValue,
+                }
+            );
             return scope;
         }
     }

@@ -3,7 +3,8 @@ namespace Auxil.Utilities;
 /// <summary>Provides enum helper operations for a specific enum type.</summary>
 /// <typeparam name="TEnum">The enum type to operate on.</typeparam>
 [PublicAPI]
-public static class EnumUtility<TEnum> where TEnum : struct, Enum
+public static class EnumUtility<TEnum>
+    where TEnum : struct, Enum
 {
     /// <summary>Returns the names of all enum values.</summary>
     public static List<string> GetValueNames() => Enum.GetNames<TEnum>().ToList();
@@ -17,12 +18,8 @@ public static class EnumUtility<TEnum> where TEnum : struct, Enum
             return GetValueNames();
         }
 
-        HashSet<string> excludedNames = exclude
-            .Select(@enum => @enum.ToString())
-            .ToHashSet();
+        HashSet<string> excludedNames = exclude.Select(@enum => @enum.ToString()).ToHashSet();
 
-        return Enum.GetNames<TEnum>()
-            .Where(name => !excludedNames.Contains(name))
-            .ToList();
+        return Enum.GetNames<TEnum>().Where(name => !excludedNames.Contains(name)).ToList();
     }
 }

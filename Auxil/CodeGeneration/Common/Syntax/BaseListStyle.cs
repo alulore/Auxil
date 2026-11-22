@@ -12,5 +12,5 @@ public enum BaseListStyle
     Colon,
 
     /// <summary>Keyword-based, e.g. TypeScript/GDScript "extends Node".</summary>
-    Extends
+    Extends,
 }

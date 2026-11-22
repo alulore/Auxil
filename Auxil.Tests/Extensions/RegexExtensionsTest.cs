@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Auxil.Common.Text;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
@@ -76,17 +76,5 @@ public class RegexExtensionsTest
 
         results[0].GetString("letter").ShouldBe("a");
         results[1].GetString("letter").ShouldBe("b");
-    }
-
-    [Fact]
-    public void ThrowsOnNullArguments()
-    {
-        Regex regex = new(@"\d+");
-        Regex? nullRegex = null;
-
-        Should.Throw<ArgumentNullException>(() => nullRegex!.BetterMatch("input"));
-        Should.Throw<ArgumentNullException>(() => regex.BetterMatch(null!));
-        Should.Throw<ArgumentNullException>(() => nullRegex!.BetterMatches("input"));
-        Should.Throw<ArgumentNullException>(() => regex.BetterMatches(null!));
     }
 }

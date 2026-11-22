@@ -65,71 +65,92 @@ internal static class CodeModelValidator
     {
         foreach (CodeStatement statement in statements)
         {
-            switch (statement)
+            ValidateStatement(statement);
+        }
+    }
+
+    private static void ValidateStatement(CodeStatement statement)
+    {
+        switch (statement)
+        {
+            case CodeIf ifStatement:
+                ValidateIf(ifStatement);
+                break;
+            case CodeForEach forEach:
+                ValidateStatements(forEach.Body);
+                break;
+            case CodeWhile whileStatement:
+                ValidateStatements(whileStatement.Body);
+                break;
+            case CodeDoWhile doWhile:
+                ValidateStatements(doWhile.Body);
+                break;
+            case CodeFor forStatement:
+                ValidateStatements(forStatement.Body);
+                break;
+            case CodeRawBlock rawBlock:
+                ValidateStatements(rawBlock.Body);
+                break;
+            case CodeMatch match:
+                foreach (CodeMatchArm arm in match.Arms)
+                {
+                    ValidateStatements(arm.Body);
+                }
+
+                break;
+            case CodeTry tryStatement:
+                ValidateTry(tryStatement);
+                break;
+            case CodeNestedFunction nestedFunction when nestedFunction.Body is not null:
+                ValidateStatements(nestedFunction.Body.Statements);
+                break;
+            case CodeObjectLiteral objectLiteral:
+                ValidateObjectLiteral(objectLiteral);
+                break;
+        }
+    }
+
+    private static void ValidateIf(CodeIf ifStatement)
+    {
+        ValidateStatements(ifStatement.Then);
+        foreach (CodeElseIf branch in ifStatement.ElseIfs)
+        {
+            ValidateStatements(branch.Body);
+        }
+
+        ValidateStatements(ifStatement.Else);
+    }
+
+    private static void ValidateTry(CodeTry tryStatement)
+    {
+        if (tryStatement.Catches.Count == 0 && tryStatement.Finally.Count == 0)
+        {
+            throw new CodeBuilderException(
+                "A try statement requires at least one catch or finally block."
+            );
+        }
+
+        ValidateStatements(tryStatement.Body);
+        foreach (CodeCatch catchBlock in tryStatement.Catches)
+        {
+            ValidateStatements(catchBlock.Body);
+        }
+
+        ValidateStatements(tryStatement.Finally);
+    }
+
+    private static void ValidateObjectLiteral(CodeObjectLiteral objectLiteral)
+    {
+        foreach (CodeObjectMember member in objectLiteral.Members)
+        {
+            if (member.Object is not null)
             {
-                case CodeIf ifStatement:
-                    ValidateStatements(ifStatement.Then);
-                    foreach (CodeElseIf branch in ifStatement.ElseIfs)
-                    {
-                        ValidateStatements(branch.Body);
-                    }
+                ValidateStatements([member.Object]);
+            }
 
-                    ValidateStatements(ifStatement.Else);
-                    break;
-                case CodeForEach forEach:
-                    ValidateStatements(forEach.Body);
-                    break;
-                case CodeWhile whileStatement:
-                    ValidateStatements(whileStatement.Body);
-                    break;
-                case CodeDoWhile doWhile:
-                    ValidateStatements(doWhile.Body);
-                    break;
-                case CodeFor forStatement:
-                    ValidateStatements(forStatement.Body);
-                    break;
-                case CodeRawBlock rawBlock:
-                    ValidateStatements(rawBlock.Body);
-                    break;
-                case CodeMatch match:
-                    foreach (CodeMatchArm arm in match.Arms)
-                    {
-                        ValidateStatements(arm.Body);
-                    }
-
-                    break;
-                case CodeTry tryStatement:
-                    if (tryStatement.Catches.Count == 0 && tryStatement.Finally.Count == 0)
-                    {
-                        throw new CodeBuilderException("A try statement requires at least one catch or finally block.");
-                    }
-
-                    ValidateStatements(tryStatement.Body);
-                    foreach (CodeCatch catchBlock in tryStatement.Catches)
-                    {
-                        ValidateStatements(catchBlock.Body);
-                    }
-
-                    ValidateStatements(tryStatement.Finally);
-                    break;
-                case CodeNestedFunction nestedFunction when nestedFunction.Body is not null:
-                    ValidateStatements(nestedFunction.Body.Statements);
-                    break;
-                case CodeObjectLiteral objectLiteral:
-                    foreach (CodeObjectMember member in objectLiteral.Members)
-                    {
-                        if (member.Object is not null)
-                        {
-                            ValidateStatements([member.Object]);
-                        }
-
-                        if (member.Function?.Body is not null)
-                        {
-                            ValidateStatements(member.Function.Body.Statements);
-                        }
-                    }
-
-                    break;
+            if (member.Function?.Body is not null)
+            {
+                ValidateStatements(member.Function.Body.Statements);
             }
         }
     }

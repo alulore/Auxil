@@ -7,7 +7,7 @@ namespace Auxil.CodeGeneration.Common.Rendering;
 /// Shared statement renderer flow: body rendering, the pass placeholder
 /// for indentation languages, capability checks, and dispatch to the
 /// language's statement shape hooks. The shape hooks (see
-/// <see cref="Syntax.Shapes.Shapes"/>) decide how each statement looks.
+/// <see cref="Syntax.Shapes.SyntaxShapes"/>) decide how each statement looks.
 /// </summary>
 internal static class StatementRenderer
 {
@@ -28,8 +28,10 @@ internal static class StatementRenderer
 
     public static void RenderStatements(RenderContext ctx, List<CodeStatement> statements)
     {
-        if (ctx.Syntax.BlockStyle == BlockStyle.Indentation
-            && (statements.Count == 0 || !statements.Any(s => NodeFeatures.CanRender(ctx, s))))
+        if (
+            ctx.Syntax.BlockStyle == BlockStyle.Indentation
+            && (statements.Count == 0 || !statements.Any(s => NodeFeatures.CanRender(ctx, s)))
+        )
         {
             ctx.Writer.WriteLine(ctx.Syntax.KeywordPass);
         }
@@ -47,8 +49,22 @@ internal static class StatementRenderer
             ctx.Writer.WriteDocComment(function.DocComment.Text);
         }
 
-        string header = string.Join(" ", [.. ctx.Syntax.BuildModifierPrefix(function.Modifiers),
-            ctx.Shapes.Signature(ctx.Shape, SignatureKind.Function, function.Name, function.Parameters, function.Generics, function.ReturnType, className: string.Empty, interfaceMode: false)]);
+        string header = string.Join(
+            " ",
+            [
+                .. ctx.Syntax.BuildModifierPrefix(function.Modifiers),
+                ctx.Shapes.Signature(
+                    ctx.Shape,
+                    SignatureKind.Function,
+                    function.Name,
+                    function.Parameters,
+                    function.Generics,
+                    function.ReturnType,
+                    className: string.Empty,
+                    interfaceMode: false
+                ),
+            ]
+        );
 
         ShapeBlocks.Open(ctx.Shape, header);
         RenderBody(ctx, function.Body);
@@ -57,8 +73,6 @@ internal static class StatementRenderer
 
     internal static void RenderStatement(RenderContext ctx, CodeStatement statement)
     {
-        ShapeContext shape = ctx.Shape;
-
         switch (statement)
         {
             case CodeExpressionStatement expr:
@@ -70,6 +84,43 @@ internal static class StatementRenderer
             case CodeCommentStatement comment:
                 ctx.Writer.WriteComment(comment.Text);
                 break;
+            case CodeLocalVariable variable:
+                if (ctx.Shapes.LocalVariable(ctx.Shape, variable) is { } declaration)
+                {
+                    ctx.Writer.WriteStatement(declaration);
+                }
+
+                break;
+            case CodeNestedFunction nestedFunction:
+                RenderNestedFunction(ctx, nestedFunction);
+                break;
+            case CodeObjectLiteral literal:
+                ctx.Shapes.ObjectLiteral(ctx.Shape, literal);
+                break;
+            case CodeThrow throwStatement:
+                ctx.Writer.WriteStatement($"throw {throwStatement.Value}");
+                break;
+            case CodeReturn ret:
+                ctx.Writer.WriteStatement(ret.Value is null ? "return" : $"return {ret.Value}");
+                break;
+            case CodeBreak:
+                ctx.Writer.WriteStatement("break");
+                break;
+            case CodeContinue:
+                ctx.Writer.WriteStatement("continue");
+                break;
+            default:
+                RenderBlockStatement(ctx, statement);
+                break;
+        }
+    }
+
+    private static void RenderBlockStatement(RenderContext ctx, CodeStatement statement)
+    {
+        ShapeContext shape = ctx.Shape;
+
+        switch (statement)
+        {
             case CodeIf ifStatement:
                 ctx.Shapes.If(shape, ifStatement);
                 break;
@@ -83,7 +134,13 @@ internal static class StatementRenderer
                 ctx.Shapes.DoWhile(shape, doWhile.Condition, doWhile.Body);
                 break;
             case CodeFor forStatement:
-                ctx.Shapes.For(shape, forStatement.Initializer, forStatement.Condition, forStatement.Increment, forStatement.Body);
+                ctx.Shapes.For(
+                    shape,
+                    forStatement.Initializer,
+                    forStatement.Condition,
+                    forStatement.Increment,
+                    forStatement.Body
+                );
                 break;
             case CodeMatch match:
                 ctx.Shapes.Match(shape, match);
@@ -93,31 +150,6 @@ internal static class StatementRenderer
                 break;
             case CodeTry tryStatement:
                 ctx.Shapes.Try(shape, tryStatement);
-                break;
-            case CodeLocalVariable variable:
-                if (ctx.Shapes.LocalVariable(shape, variable) is { } declaration)
-                {
-                    ctx.Writer.WriteStatement(declaration);
-                }
-
-                break;
-            case CodeNestedFunction nestedFunction:
-                RenderNestedFunction(ctx, nestedFunction);
-                break;
-            case CodeObjectLiteral literal:
-                ctx.Shapes.ObjectLiteral(shape, literal);
-                break;
-            case CodeThrow throwStatement:
-                ctx.Writer.WriteStatement($"throw {throwStatement.Value}");
-                break;
-            case CodeReturn ret:
-                ctx.Writer.WriteStatement(ret.Value is null ? "return" : $"return {ret.Value}");
-                break;
-            case CodeBreak:
-                ctx.Writer.WriteStatement("break");
-                break;
-            case CodeContinue:
-                ctx.Writer.WriteStatement("continue");
                 break;
         }
     }

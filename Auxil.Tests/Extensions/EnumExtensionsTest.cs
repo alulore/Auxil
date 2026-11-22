@@ -1,7 +1,7 @@
-using JetBrains.Annotations;
 using Auxil.Common;
 using Auxil.Common.Text;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
@@ -40,5 +40,4 @@ public class EnumExtensionsTest
         VersionDevelopmentStage.Beta.GetStringValue().ShouldBe("beta");
         VersionDevelopmentStage.Rc.GetStringValue().ShouldBe("rc");
     }
-
-    }
+}

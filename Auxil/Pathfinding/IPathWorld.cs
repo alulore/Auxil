@@ -10,6 +10,12 @@ namespace Auxil.Pathfinding;
 /// </summary>
 internal interface IPathWorld
 {
+    internal static IPathWorld Require(IPathWorld? world, string paramName)
+    {
+        ArgumentNullException.ThrowIfNull(world, paramName);
+        return world;
+    }
+
     Grid Grid { get; }
 
     int[] ExtraCosts { get; }

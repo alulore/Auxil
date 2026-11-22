@@ -13,7 +13,7 @@ public class PathMapTests
     [InlineData(0, 5, false)]
     public void Contains_ReportsTheBounds(int x, int y, bool expected)
     {
-        var map = new PathMap(5, 5);
+        PathMap map = new(5, 5);
 
         map.Contains(x, y).ShouldBe(expected);
     }
@@ -21,7 +21,7 @@ public class PathMapTests
     [Fact]
     public void SetBlocked_AndUnblocked_RoundTrips()
     {
-        var map = new PathMap(3, 3);
+        PathMap map = new(3, 3);
 
         map.IsBlocked(1, 1).ShouldBeFalse();
         map.SetBlocked(1, 1);
@@ -33,7 +33,7 @@ public class PathMapTests
     [Fact]
     public void SetBlocked_Rectangle_BlocksExactlyTheRectangle()
     {
-        var map = new PathMap(5, 5);
+        PathMap map = new(5, 5);
 
         map.SetBlocked(1, 1, width: 3, height: 2);
 
@@ -47,7 +47,7 @@ public class PathMapTests
     [Fact]
     public void SetBlocked_OutsideTheMap_Throws()
     {
-        var map = new PathMap(3, 3);
+        PathMap map = new(3, 3);
 
         Should.Throw<ArgumentOutOfRangeException>(() => map.SetBlocked(3, 0));
         Should.Throw<ArgumentOutOfRangeException>(() => map.SetBlocked(0, 3));
@@ -57,7 +57,7 @@ public class PathMapTests
     [Fact]
     public void SetExtraCost_Negative_Throws()
     {
-        var map = new PathMap(3, 3);
+        PathMap map = new(3, 3);
 
         Should.Throw<ArgumentOutOfRangeException>(() => map.SetExtraCost(1, 1, -1));
         map.HasTerrainCosts.ShouldBeFalse();
@@ -69,11 +69,7 @@ public class PathMapTests
     [Fact]
     public void FromRows_BuildsTheBlockedPattern()
     {
-        var map = PathMap.FromRows([
-            "..#..",
-            ".....",
-            "#...#",
-        ]);
+        PathMap map = PathMap.FromRows(["..#..", ".....", "#...#"]);
 
         map.Width.ShouldBe(5);
         map.Height.ShouldBe(3);
@@ -94,7 +90,7 @@ public class PathMapTests
     [Fact]
     public void PointOverloads_RequireLayerZero()
     {
-        var map = new PathMap(3, 3);
+        PathMap map = new(3, 3);
 
         map.Contains(new PathPoint(1, 1)).ShouldBeTrue();
         map.Contains(new PathPoint(1, 1, 1)).ShouldBeFalse();

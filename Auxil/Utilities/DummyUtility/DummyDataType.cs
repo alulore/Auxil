@@ -6,6 +6,7 @@ public enum DummyDataType
 {
     /// <summary>Classical lorem ipsum words.</summary>
     LoremIpsum,
+
     /// <summary>Random English gibberish words.</summary>
-    EnglishGibberish
+    EnglishGibberish,
 }

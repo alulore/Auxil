@@ -6,13 +6,15 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// A constructor scope. Parameters and body.
 /// </summary>
 [PublicAPI]
-public sealed class ConstructorScope<TLanguage, TParent> : BodyScope<TLanguage, ConstructorScope<TLanguage, TParent>, TParent>
+public sealed class ConstructorScope<TLanguage, TParent>
+    : BodyScope<TLanguage, ConstructorScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
     private readonly CodeConstructor _ctor;
 
-    internal ConstructorScope(CodeBuilder<TLanguage> builder, CodeConstructor ctor, TParent parent) : base(builder, ctor, parent)
+    internal ConstructorScope(CodeBuilder<TLanguage> builder, CodeConstructor ctor, TParent parent)
+        : base(builder, ctor, parent)
     {
         _ctor = ctor;
     }

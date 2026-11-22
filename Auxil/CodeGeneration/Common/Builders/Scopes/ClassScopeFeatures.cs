@@ -31,9 +31,20 @@ public static class ClassScopeFeatures
         /// <param name="name">The type parameter name, e.g. "T".</param>
         /// <param name="constraint">An optional constraint (rendered per language, e.g. "class" in C# where clauses).</param>
         /// <param name="defaultValue">An optional default type argument (TypeScript only).</param>
-        public ClassScope<TLanguage, TParent> Generic(string name, string? constraint = null, string? defaultValue = null)
+        public ClassScope<TLanguage, TParent> Generic(
+            string name,
+            string? constraint = null,
+            string? defaultValue = null
+        )
         {
-            scope.ClassNode.Generics.Add(new CodeGenericParameter { Name = name, Constraint = constraint, DefaultValue = defaultValue });
+            scope.ClassNode.Generics.Add(
+                new CodeGenericParameter
+                {
+                    Name = name,
+                    Constraint = constraint,
+                    DefaultValue = defaultValue,
+                }
+            );
             return scope;
         }
     }
@@ -48,7 +59,11 @@ public static class ClassScopeFeatures
         {
             CodeClass cls = new() { Name = name };
             scope.ClassNode.Members.Add(cls);
-            return new ClassScope<TLanguage, ClassScope<TLanguage, TParent>>(scope.Builder, cls, scope);
+            return new ClassScope<TLanguage, ClassScope<TLanguage, TParent>>(
+                scope.Builder,
+                cls,
+                scope
+            );
         }
     }
 
@@ -62,7 +77,11 @@ public static class ClassScopeFeatures
         {
             CodeInterface iface = new() { Name = name };
             scope.ClassNode.Members.Add(iface);
-            return new InterfaceScope<TLanguage, ClassScope<TLanguage, TParent>>(scope.Builder, iface, scope);
+            return new InterfaceScope<TLanguage, ClassScope<TLanguage, TParent>>(
+                scope.Builder,
+                iface,
+                scope
+            );
         }
     }
 
@@ -76,7 +95,11 @@ public static class ClassScopeFeatures
         {
             CodeSignal signal = new() { Name = name };
             scope.ClassNode.Members.Add(signal);
-            return new SignalScope<TLanguage, ClassScope<TLanguage, TParent>>(scope.Builder, signal, scope);
+            return new SignalScope<TLanguage, ClassScope<TLanguage, TParent>>(
+                scope.Builder,
+                signal,
+                scope
+            );
         }
     }
 
@@ -89,7 +112,11 @@ public static class ClassScopeFeatures
         {
             CodeConstructor ctor = new();
             scope.ClassNode.Members.Add(ctor);
-            return new ConstructorScope<TLanguage, ClassScope<TLanguage, TParent>>(scope.Builder, ctor, scope);
+            return new ConstructorScope<TLanguage, ClassScope<TLanguage, TParent>>(
+                scope.Builder,
+                ctor,
+                scope
+            );
         }
     }
 }

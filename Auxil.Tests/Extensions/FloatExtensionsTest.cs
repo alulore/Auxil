@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
@@ -17,7 +17,7 @@ public class FloatExtensionsTest
     }
 
     [Theory]
-    [InlineData(2.345f, 2, 2.34f)]
+    [InlineData(2.345f, 2, 2.35f)]
     [InlineData(2.345f, 1, 2.3f)]
     [InlineData(2.345f, 0, 2f)]
     public void Round_RoundsToDigits(float value, int digits, float expected)

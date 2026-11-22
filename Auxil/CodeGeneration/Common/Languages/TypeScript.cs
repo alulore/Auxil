@@ -7,11 +7,28 @@ namespace Auxil.CodeGeneration.Common.Languages;
 /// imports, interfaces, top-level functions, generics, full modifiers.
 /// </summary>
 [PublicAPI]
-public struct TypeScript : ILanguage,
-    IHasImports, IHasInterfaces, IHasTopLevelFunctions, IHasGenerics, IHasConstructors,
-    IHasImplements, IHasExceptionHandling, IHasDoWhile, IHasCStyleFor, IHasThrow,
-    IHasMatch, IHasVisibilityModifiers, IHasOverride, IHasReadonly, IHasConst,
-    IHasAsync, IHasExport, IHasTypeAliases, IHasNestedFunctions, IHasObjectLiterals
+public struct TypeScript
+    : ILanguage,
+        IHasImports,
+        IHasInterfaces,
+        IHasTopLevelFunctions,
+        IHasGenerics,
+        IHasConstructors,
+        IHasImplements,
+        IHasExceptionHandling,
+        IHasDoWhile,
+        IHasCStyleFor,
+        IHasThrow,
+        IHasMatch,
+        IHasVisibilityModifiers,
+        IHasOverride,
+        IHasReadonly,
+        IHasConst,
+        IHasAsync,
+        IHasExport,
+        IHasTypeAliases,
+        IHasNestedFunctions,
+        IHasObjectLiterals
 {
     /// <inheritdoc/>
     public static string Name => "TypeScript";

@@ -31,7 +31,10 @@ public class ObjectLiteralBuilder<TLanguage>
     /// <summary>Adds a member whose value is a nested object literal.</summary>
     /// <param name="name">The member name, written verbatim.</param>
     /// <param name="nested">Builds the nested literal's members.</param>
-    public ObjectLiteralBuilder<TLanguage> Member(string name, Action<ObjectLiteralBuilder<TLanguage>> nested)
+    public ObjectLiteralBuilder<TLanguage> Member(
+        string name,
+        Action<ObjectLiteralBuilder<TLanguage>> nested
+    )
     {
         CodeObjectLiteral nestedLiteral = new();
         ObjectLiteralBuilder<TLanguage> nestedBuilder = new(nestedLiteral);
@@ -43,7 +46,10 @@ public class ObjectLiteralBuilder<TLanguage>
     /// <summary>Adds a member whose value is a function (method shorthand).</summary>
     /// <param name="name">The member name, written verbatim.</param>
     /// <param name="function">Builds the function's signature and body.</param>
-    public ObjectLiteralBuilder<TLanguage> Member(string name, Action<FunctionStatementBuilder<TLanguage>> function)
+    public ObjectLiteralBuilder<TLanguage> Member(
+        string name,
+        Action<FunctionStatementBuilder<TLanguage>> function
+    )
     {
         CodeNestedFunction functionNode = new() { Name = name };
         FunctionStatementBuilder<TLanguage> functionBuilder = new(functionNode);

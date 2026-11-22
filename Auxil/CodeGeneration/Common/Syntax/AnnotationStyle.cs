@@ -10,5 +10,5 @@ public enum AnnotationStyle
     At,
 
     /// <summary>Square brackets, e.g. C# "[Obsolete]".</summary>
-    Square
+    Square,
 }

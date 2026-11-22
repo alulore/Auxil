@@ -7,11 +7,13 @@ namespace Auxil.CodeGeneration.Common.Builders.Scopes;
 /// signatures. Generic() is a trait-gated extension member.
 /// </summary>
 [PublicAPI]
-public sealed class InterfaceScope<TLanguage, TParent> : DeclarationScope<TLanguage, InterfaceScope<TLanguage, TParent>, TParent>
+public sealed class InterfaceScope<TLanguage, TParent>
+    : DeclarationScope<TLanguage, InterfaceScope<TLanguage, TParent>, TParent>
     where TLanguage : struct, ILanguage
     where TParent : IScope
 {
-    internal InterfaceScope(CodeBuilder<TLanguage> builder, CodeInterface iface, TParent parent) : base(builder, iface, parent)
+    internal InterfaceScope(CodeBuilder<TLanguage> builder, CodeInterface iface, TParent parent)
+        : base(builder, iface, parent)
     {
         InterfaceNode = iface;
     }
@@ -44,9 +46,18 @@ public sealed class InterfaceScope<TLanguage, TParent> : DeclarationScope<TLangu
     /// <param name="name">The property name.</param>
     /// <param name="type">The property type.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FieldScope<TLanguage, InterfaceScope<TLanguage, TParent>> Field(string name, CodeType? type = null, string? defaultValue = null)
+    public FieldScope<TLanguage, InterfaceScope<TLanguage, TParent>> Field(
+        string name,
+        CodeType? type = null,
+        string? defaultValue = null
+    )
     {
-        CodeField field = new() { Name = name, Type = type, DefaultValue = defaultValue };
+        CodeField field = new()
+        {
+            Name = name,
+            Type = type,
+            DefaultValue = defaultValue,
+        };
         InterfaceNode.Members.Add(field);
         return new FieldScope<TLanguage, InterfaceScope<TLanguage, TParent>>(Builder, field, this);
     }
@@ -55,7 +66,11 @@ public sealed class InterfaceScope<TLanguage, TParent> : DeclarationScope<TLangu
     /// <param name="name">The property name.</param>
     /// <param name="typeName">The property type name.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FieldScope<TLanguage, InterfaceScope<TLanguage, TParent>> Field(string name, string typeName, string? defaultValue = null)
+    public FieldScope<TLanguage, InterfaceScope<TLanguage, TParent>> Field(
+        string name,
+        string typeName,
+        string? defaultValue = null
+    )
     {
         return Field(name, CodeType.Of(typeName), defaultValue);
     }
@@ -63,17 +78,27 @@ public sealed class InterfaceScope<TLanguage, TParent> : DeclarationScope<TLangu
     /// <summary>Adds a property to the interface.</summary>
     /// <param name="name">The property name.</param>
     /// <param name="type">The property type.</param>
-    public PropertyScope<TLanguage, InterfaceScope<TLanguage, TParent>> Property(string name, CodeType? type = null)
+    public PropertyScope<TLanguage, InterfaceScope<TLanguage, TParent>> Property(
+        string name,
+        CodeType? type = null
+    )
     {
         CodeProperty property = new() { Name = name, Type = type };
         InterfaceNode.Members.Add(property);
-        return new PropertyScope<TLanguage, InterfaceScope<TLanguage, TParent>>(Builder, property, this);
+        return new PropertyScope<TLanguage, InterfaceScope<TLanguage, TParent>>(
+            Builder,
+            property,
+            this
+        );
     }
 
     /// <summary>Adds a property to the interface using a type name string.</summary>
     /// <param name="name">The property name.</param>
     /// <param name="typeName">The property type name.</param>
-    public PropertyScope<TLanguage, InterfaceScope<TLanguage, TParent>> Property(string name, string typeName)
+    public PropertyScope<TLanguage, InterfaceScope<TLanguage, TParent>> Property(
+        string name,
+        string typeName
+    )
     {
         return Property(name, CodeType.Of(typeName));
     }
@@ -84,6 +109,10 @@ public sealed class InterfaceScope<TLanguage, TParent> : DeclarationScope<TLangu
     {
         CodeMethod method = new() { Name = name };
         InterfaceNode.Members.Add(method);
-        return new MethodScope<TLanguage, InterfaceScope<TLanguage, TParent>>(Builder, method, this);
+        return new MethodScope<TLanguage, InterfaceScope<TLanguage, TParent>>(
+            Builder,
+            method,
+            this
+        );
     }
 }

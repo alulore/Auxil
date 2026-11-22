@@ -83,9 +83,18 @@ public sealed class FileScope<TLanguage> : IScope
     /// <param name="name">The field name.</param>
     /// <param name="type">The field type.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FieldScope<TLanguage, FileScope<TLanguage>> Field(string name, CodeType? type = null, string? defaultValue = null)
+    public FieldScope<TLanguage, FileScope<TLanguage>> Field(
+        string name,
+        CodeType? type = null,
+        string? defaultValue = null
+    )
     {
-        CodeField field = new() { Name = name, Type = type, DefaultValue = defaultValue };
+        CodeField field = new()
+        {
+            Name = name,
+            Type = type,
+            DefaultValue = defaultValue,
+        };
         FileNode.Children.Add(field);
         return new FieldScope<TLanguage, FileScope<TLanguage>>(Builder, field, this);
     }
@@ -94,7 +103,11 @@ public sealed class FileScope<TLanguage> : IScope
     /// <param name="name">The field name.</param>
     /// <param name="typeName">The field type name.</param>
     /// <param name="defaultValue">An optional default value, as a raw expression.</param>
-    public FieldScope<TLanguage, FileScope<TLanguage>> Field(string name, string typeName, string? defaultValue = null)
+    public FieldScope<TLanguage, FileScope<TLanguage>> Field(
+        string name,
+        string typeName,
+        string? defaultValue = null
+    )
     {
         return Field(name, CodeType.Of(typeName), defaultValue);
     }
@@ -102,7 +115,10 @@ public sealed class FileScope<TLanguage> : IScope
     /// <summary>Adds a top-level property.</summary>
     /// <param name="name">The property name.</param>
     /// <param name="type">The property type.</param>
-    public PropertyScope<TLanguage, FileScope<TLanguage>> Property(string name, CodeType? type = null)
+    public PropertyScope<TLanguage, FileScope<TLanguage>> Property(
+        string name,
+        CodeType? type = null
+    )
     {
         CodeProperty property = new() { Name = name, Type = type };
         FileNode.Children.Add(property);

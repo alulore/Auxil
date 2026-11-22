@@ -27,7 +27,7 @@ public static class GDScriptSyntax
             {
                 [CodeModifier.Static] = "static",
                 [CodeModifier.Const] = "const",
-                [CodeModifier.Abstract] = "@abstract"
+                [CodeModifier.Abstract] = "@abstract",
             },
             TypeMap = new Dictionary<string, string>
             {
@@ -41,7 +41,7 @@ public static class GDScriptSyntax
                 ["array"] = "Array",
                 ["dictionary"] = "Dictionary",
                 ["null"] = "null",
-                ["dynamic"] = "Variant"
+                ["dynamic"] = "Variant",
             },
             KeywordMethod = "func",
             KeywordConstructor = "_init",
@@ -62,7 +62,7 @@ public static class GDScriptSyntax
             ForEachConnector = "in",
             LocalVarKeyword = "var",
             SupportsNullable = false,
-            EnumTrailingComma = false
+            EnumTrailingComma = false,
         };
     }
 }

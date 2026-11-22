@@ -6,10 +6,13 @@ public enum LogLevel
 {
     /// <summary>No logging.</summary>
     None,
+
     /// <summary>Error severity.</summary>
     Error,
+
     /// <summary>Warning severity.</summary>
     Warning,
+
     /// <summary>Information severity.</summary>
-    Information
+    Information,
 }

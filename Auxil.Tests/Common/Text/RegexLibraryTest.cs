@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Auxil.Common.Text;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Text;
 
@@ -9,7 +9,8 @@ public class RegexLibraryTest
 {
     private static bool Matches(string pattern, string input) => Regex.IsMatch(input, pattern);
 
-    private static bool MatchesFull(string pattern, string input) => Regex.IsMatch(input, $"^(?:{pattern})$");
+    private static bool MatchesFull(string pattern, string input) =>
+        Regex.IsMatch(input, $"^(?:{pattern})$");
 
     [Theory]
     [InlineData("a")]
@@ -240,10 +241,12 @@ public class RegexLibraryTest
     }
 
     [Fact]
-    public void Quantifiers_AreSingleCharacters()
+    public void Quantifiers_RepeatThePrecedingCharacter()
     {
-        RegexLibrary.OneOrMore.ShouldBe('+');
-        RegexLibrary.ZeroOrMore.ShouldBe('*');
-        RegexLibrary.ZeroOrOne.ShouldBe('?');
+        Regex.Match("aaab", $"a{RegexLibrary.OneOrMore}").Value.ShouldBe("aaa");
+        Regex.Match("baa", $"ba{RegexLibrary.ZeroOrMore}").Value.ShouldBe("baa");
+        Regex
+            .Match("ab", $"ab{RegexLibrary.ZeroOrOne}c{RegexLibrary.ZeroOrOne}")
+            .Value.ShouldBe("ab");
     }
 }

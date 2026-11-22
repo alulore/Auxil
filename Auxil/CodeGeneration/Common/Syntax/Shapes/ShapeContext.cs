@@ -16,7 +16,7 @@ public sealed class ShapeContext
     public required LanguageSyntax Syntax { get; init; }
 
     /// <summary>The language's shape bundle, so shape defaults can compose other hooks.</summary>
-    public required Shapes Shapes { get; init; }
+    public required SyntaxShapes Shapes { get; init; }
 
     /// <summary>The language name, used in warnings.</summary>
     public required string LanguageName { get; init; }

@@ -33,7 +33,7 @@ public static class TypeScriptSyntax
                 [CodeModifier.Readonly] = "readonly",
                 [CodeModifier.Async] = "async",
                 [CodeModifier.Export] = "export",
-                [CodeModifier.Override] = "override"
+                [CodeModifier.Override] = "override",
             },
             TypeMap = new Dictionary<string, string>
             {
@@ -45,7 +45,7 @@ public static class TypeScriptSyntax
                 ["void"] = "void",
                 ["object"] = "object",
                 ["null"] = "null",
-                ["dynamic"] = "any"
+                ["dynamic"] = "any",
             },
             KeywordConstructor = "constructor",
             KeywordFunction = "function",
@@ -55,7 +55,7 @@ public static class TypeScriptSyntax
             ForEachConnector = "of",
             LocalVarKeyword = "let",
             EnumCloseSuffix = ";",
-            EnumTrailingComma = false
+            EnumTrailingComma = false,
         };
     }
 }

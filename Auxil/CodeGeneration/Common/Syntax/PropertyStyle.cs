@@ -13,5 +13,5 @@ public enum PropertyStyle
     AsField,
 
     /// <summary>Variable with optional get/set blocks, e.g. GDScript.</summary>
-    BlockForm
+    BlockForm,
 }

@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
-using JetBrains.Annotations;
 using Auxil.Common.Notifications;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Notifications;
 
@@ -33,10 +33,9 @@ public sealed class NotificationCenterTest
         center.Active.Select(notification => notification.Id).ShouldBe(["first", secondId]);
         center.Active.Select(notification => notification.Sequence).ShouldBe([1L, 2L]);
 
-        changes.Select(change => change.Kind).ShouldBe([
-            NotificationChangeKind.Added,
-            NotificationChangeKind.Added
-        ]);
+        changes
+            .Select(change => change.Kind)
+            .ShouldBe([NotificationChangeKind.Added, NotificationChangeKind.Added]);
 
         changes[0].Notification.Id.ShouldBe(center.Active[0].Id);
         changes[0].Notification.Sequence.ShouldBe(center.Active[0].Sequence);
@@ -48,7 +47,9 @@ public sealed class NotificationCenterTest
         NotificationCenter center = CreateCenter(new ManualTimeProvider(Start));
         center.Publish(CreateNotification("same", "same"));
 
-        Should.Throw<ArgumentException>(() => center.Publish(CreateNotification("same again", "same")));
+        Should.Throw<ArgumentException>(() =>
+            center.Publish(CreateNotification("same again", "same"))
+        );
         center.Count.ShouldBe(1);
     }
 
@@ -58,12 +59,14 @@ public sealed class NotificationCenterTest
         ManualTimeProvider clock = new(Start);
         NotificationCenter center = CreateCenter(clock);
 
-        string id = center.Publish(CreateNotification("snapshot", "snapshot") with
-        {
-            Actions = [new NotificationAction("open", "Open")],
-            Tags = ["system"],
-            Metadata = ImmutableDictionary<string, string>.Empty.Add("source-id", "42"),
-        });
+        string id = center.Publish(
+            CreateNotification("snapshot", "snapshot") with
+            {
+                Actions = [new NotificationAction("open", "Open")],
+                Tags = ["system"],
+                Metadata = ImmutableDictionary<string, string>.Empty.Add("source-id", "42"),
+            }
+        );
 
         Notification snapshot = center.Active[0];
 
@@ -73,7 +76,7 @@ public sealed class NotificationCenterTest
         snapshot.Title.ShouldBe("snapshot");
         snapshot.Status.ShouldBe(NotificationStatus.Active);
         snapshot.Actions.Select(action => action.Id).ShouldBe(["open"]);
-        snapshot.Tags.ShouldBe( ["system"]);
+        snapshot.Tags.ShouldBe(["system"]);
         snapshot.Metadata["source-id"].ShouldBe("42");
     }
 
@@ -90,14 +93,19 @@ public sealed class NotificationCenterTest
 
         center.NotificationChanged += (_, args) => changes.Add(args);
 
-        center.Update(id, new Notification("after")
-        {
-            Id = id,
-            Source = "updated-source",
-            Severity = NotificationSeverity.Warning,
-            Message = "changed",
-            ExpiresAt = Start.AddMinutes(7),
-        }).ShouldBeTrue();
+        center
+            .Update(
+                id,
+                new Notification("after")
+                {
+                    Id = id,
+                    Source = "updated-source",
+                    Severity = NotificationSeverity.Warning,
+                    Message = "changed",
+                    ExpiresAt = Start.AddMinutes(7),
+                }
+            )
+            .ShouldBeTrue();
 
         center.TryGetValue(id, out Notification? record).ShouldBeTrue();
 
@@ -132,10 +140,12 @@ public sealed class NotificationCenterTest
 
         center.Active.Length.ShouldBe(1);
         center.Active[0].IsRead.ShouldBeFalse();
-        changes.Select(change => change.Kind).ShouldBe([
-            NotificationChangeKind.ReadStateChanged,
-            NotificationChangeKind.ReadStateChanged
-        ]);
+        changes
+            .Select(change => change.Kind)
+            .ShouldBe([
+                NotificationChangeKind.ReadStateChanged,
+                NotificationChangeKind.ReadStateChanged,
+            ]);
     }
 
     [Fact]
@@ -223,11 +233,12 @@ public sealed class NotificationCenterTest
 
         center.History.Select(notification => notification.Id).ShouldBe([secondId]);
         center.TryGetValue(firstId, out _).ShouldBeFalse();
-        changes.Any(change => change is
-        {
-            Kind: NotificationChangeKind.Removed,
-            Notification.Id: var removedId,
-        } && removedId == firstId).ShouldBeTrue();
+        changes
+            .Any(change =>
+                change is { Kind: NotificationChangeKind.Removed, Notification.Id: var removedId }
+                && removedId == firstId
+            )
+            .ShouldBeTrue();
     }
 
     [Fact]
@@ -243,7 +254,9 @@ public sealed class NotificationCenterTest
         center.Dismiss(thirdId).ShouldBeTrue();
 
         center.HistoryLimit.ShouldBe(0u);
-        center.History.Select(notification => notification.Id).ShouldBe([firstId, secondId, thirdId]);
+        center
+            .History.Select(notification => notification.Id)
+            .ShouldBe([firstId, secondId, thirdId]);
         center.Count.ShouldBe(3);
     }
 
@@ -252,11 +265,9 @@ public sealed class NotificationCenterTest
     {
         ManualTimeProvider clock = new(Start);
         NotificationCenter center = CreateCenter(clock);
-        string expiringId = center.Publish(new Notification("expiring")
-        {
-            Id = "expiring",
-            ExpiresAt = Start.AddMinutes(1),
-        });
+        string expiringId = center.Publish(
+            new Notification("expiring") { Id = "expiring", ExpiresAt = Start.AddMinutes(1) }
+        );
         string persistentId = center.Publish(CreateNotification("persistent", "persistent"));
         clock.Advance(TimeSpan.FromMinutes(1));
 
@@ -271,10 +282,16 @@ public sealed class NotificationCenterTest
     public void InvokeAction_RaisesDataOnlyActionEvent()
     {
         NotificationCenter center = CreateCenter(new ManualTimeProvider(Start));
-        string id = center.Publish(CreateNotification("actions", "actions") with
-        {
-            Actions = [new NotificationAction("open", "Open"), new NotificationAction("delete", "Delete", true)],
-        });
+        string id = center.Publish(
+            CreateNotification("actions", "actions") with
+            {
+                Actions =
+                [
+                    new NotificationAction("open", "Open"),
+                    new NotificationAction("delete", "Delete", true),
+                ],
+            }
+        );
         NotificationActionInvokedEventArgs? invoked = null;
         center.ActionInvoked += (_, args) => invoked = args;
 
@@ -294,14 +311,21 @@ public sealed class NotificationCenterTest
         NotificationCenter center = CreateCenter(new ManualTimeProvider(Start));
 
         Should.Throw<ArgumentException>(() => center.Publish(new Notification(string.Empty)));
-        Should.Throw<ArgumentException>(() => center.Publish(CreateNotification("duplicate tags") with
-        {
-            Tags = ["same", "same"],
-        }));
-        Should.Throw<ArgumentException>(() => center.Publish(CreateNotification("duplicate actions") with
-        {
-            Actions = [new NotificationAction("same", "One"), new NotificationAction("same", "Two")],
-        }));
+        Should.Throw<ArgumentException>(() =>
+            center.Publish(CreateNotification("duplicate tags") with { Tags = ["same", "same"] })
+        );
+        Should.Throw<ArgumentException>(() =>
+            center.Publish(
+                CreateNotification("duplicate actions") with
+                {
+                    Actions =
+                    [
+                        new NotificationAction("same", "One"),
+                        new NotificationAction("same", "Two"),
+                    ],
+                }
+            )
+        );
     }
 
     [Fact]
@@ -315,17 +339,26 @@ public sealed class NotificationCenterTest
         });
 
         center.Count.ShouldBe(100);
-        center.Active.Select(notification => notification.Sequence).Distinct().Count().ShouldBe(100);
-        center.Active.Select(notification => notification.Id).Distinct(StringComparer.Ordinal).Count().ShouldBe(100);
+        center
+            .Active.Select(notification => notification.Sequence)
+            .Distinct()
+            .Count()
+            .ShouldBe(100);
+        center
+            .Active.Select(notification => notification.Id)
+            .Distinct(StringComparer.Ordinal)
+            .Count()
+            .ShouldBe(100);
     }
 
-    private static NotificationCenter CreateCenter(ManualTimeProvider clock, uint historyLimit = 100)
+    private static NotificationCenter CreateCenter(
+        ManualTimeProvider clock,
+        uint historyLimit = 100
+    )
     {
-        return new NotificationCenter(new NotificationCenterOptions
-        {
-            HistoryLimit = historyLimit,
-            TimeProvider = clock,
-        });
+        return new NotificationCenter(
+            new NotificationCenterOptions { HistoryLimit = historyLimit, TimeProvider = clock }
+        );
     }
 
     private static Notification CreateNotification(string title, string? id = null)

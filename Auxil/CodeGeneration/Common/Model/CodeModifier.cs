@@ -49,5 +49,5 @@ public enum CodeModifier
     Async = 1 << 11,
 
     /// <summary>The module export modifier (TypeScript).</summary>
-    Export = 1 << 12
+    Export = 1 << 12,
 }

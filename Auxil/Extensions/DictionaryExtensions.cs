@@ -10,7 +10,11 @@ public static class DictionaryExtensions
     /// <param name="dictionary">The dictionary to read from.</param>
     /// <param name="key">The key to look up.</param>
     /// <param name="defaultValue">The value returned when the key is missing.</param>
-    public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+    public static TValue GetOrDefault<TKey, TValue>(
+        this IDictionary<TKey, TValue> dictionary,
+        TKey key,
+        TValue defaultValue
+    )
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dictionary);
@@ -25,13 +29,17 @@ public static class DictionaryExtensions
     /// <param name="dictionary">The receiver dictionary.</param>
     /// <param name="mergeWith">The dictionary whose entries are merged in.</param>
     /// <param name="overrideKey">Whether the merged dictionary's values replace the receiver's on duplicate keys.</param>
-    public static IDictionary<TKey, TValue> Merge<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> mergeWith, bool overrideKey = false)
+    public static IDictionary<TKey, TValue> Merge<TKey, TValue>(
+        this IDictionary<TKey, TValue> dictionary,
+        IDictionary<TKey, TValue> mergeWith,
+        bool overrideKey = false
+    )
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dictionary);
         ArgumentNullException.ThrowIfNull(mergeWith);
 
-        Dictionary<TKey, TValue> result = new(dictionary);
+        Dictionary<TKey, TValue> result = [with(dictionary)];
 
         foreach (KeyValuePair<TKey, TValue> keyValue in mergeWith)
         {

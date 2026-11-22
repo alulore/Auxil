@@ -16,5 +16,5 @@ public enum NodeContext
     InterfaceMember,
 
     /// <summary>A statement inside a body.</summary>
-    Statement
+    Statement,
 }

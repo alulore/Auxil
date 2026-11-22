@@ -5,15 +5,26 @@ namespace Auxil.Common;
 public enum VersionDevelopmentStage
 {
     /// <summary>No development stage (a release version).</summary>
-    [StringValue("")] None,
+    [StringValue("")]
+    None,
+
     /// <summary>Pre-alpha stage.</summary>
-    [StringValue("pre")] PreAlpha,
+    [StringValue("pre")]
+    PreAlpha,
+
     /// <summary>Alpha stage.</summary>
-    [StringValue("alpha")] Alpha,
+    [StringValue("alpha")]
+    Alpha,
+
     /// <summary>Beta stage.</summary>
-    [StringValue("beta")] Beta,
+    [StringValue("beta")]
+    Beta,
+
     /// <summary>Release candidate stage.</summary>
-    [StringValue("rc")] Rc,
+    [StringValue("rc")]
+    Rc,
+
     /// <summary>Final release stage.</summary>
-    [StringValue("")] Final
+    [StringValue("")]
+    Final,
 }

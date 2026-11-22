@@ -49,21 +49,18 @@ public class CodeBuilder<TLanguage>
         return new FileScope<TLanguage>(this, Model);
     }
 
-    // ---- Surgical editing ----
-
     /// <summary>
     /// Replaces the statement with the given Id by one or more new
     /// statements. The replacement may be of a different kind than the
     /// original (e.g. replace a raw line with an If statement).
     /// </summary>
-    public CodeBuilder<TLanguage> ReplaceStatement(string id, Action<BodyBuilder<TLanguage>> configure)
+    public CodeBuilder<TLanguage> ReplaceStatement(
+        string id,
+        Action<BodyBuilder<TLanguage>> configure
+    )
     {
-        List<CodeStatement>? parent = FindStatementParent(id);
-        if (parent is null)
-        {
-            throw new CodeBuilderException($"No statement with id '{id}' found.");
-        }
-
+        List<CodeStatement>? parent = FindStatementParent(id)
+            ?? throw new CodeBuilderException($"No statement with id '{id}' found.");
         int index = parent.FindIndex(s => s.Id == id);
         parent.RemoveAt(index);
 
@@ -76,12 +73,8 @@ public class CodeBuilder<TLanguage>
     /// <summary>Inserts new statements before the statement with the given Id.</summary>
     public CodeBuilder<TLanguage> InsertBefore(string id, Action<BodyBuilder<TLanguage>> configure)
     {
-        List<CodeStatement>? parent = FindStatementParent(id);
-        if (parent is null)
-        {
-            throw new CodeBuilderException($"No statement with id '{id}' found.");
-        }
-
+        List<CodeStatement>? parent = FindStatementParent(id)
+            ?? throw new CodeBuilderException($"No statement with id '{id}' found.");
         int index = parent.FindIndex(s => s.Id == id);
         BodyBuilder<TLanguage> bodyBuilder = new([]);
         configure(bodyBuilder);
@@ -92,12 +85,8 @@ public class CodeBuilder<TLanguage>
     /// <summary>Removes the statement with the given Id.</summary>
     public CodeBuilder<TLanguage> Remove(string id)
     {
-        List<CodeStatement>? parent = FindStatementParent(id);
-        if (parent is null)
-        {
-            throw new CodeBuilderException($"No statement with id '{id}' found.");
-        }
-
+        List<CodeStatement>? parent = FindStatementParent(id)
+            ?? throw new CodeBuilderException($"No statement with id '{id}' found.");
         parent.RemoveAt(parent.FindIndex(s => s.Id == id));
         return this;
     }
@@ -137,71 +126,50 @@ public class CodeBuilder<TLanguage>
 
     private static List<CodeStatement>? FindStatementParentInNode(CodeNode node, string id)
     {
-        switch (node)
+        return node switch
         {
-            case CodeFile file:
-                foreach (CodeNode child in file.Children)
-                {
-                    List<CodeStatement>? found = FindStatementParentInNode(child, id);
-                    if (found is not null)
-                    {
-                        return found;
-                    }
-                }
-
-                return null;
-            case CodeNamespace namespaceNode:
-                foreach (CodeNode child in namespaceNode.Children)
-                {
-                    List<CodeStatement>? found = FindStatementParentInNode(child, id);
-                    if (found is not null)
-                    {
-                        return found;
-                    }
-                }
-
-                return null;
-            case CodeClass cls:
-                foreach (CodeNode member in cls.Members)
-                {
-                    List<CodeStatement>? found = FindStatementParentInNode(member, id);
-                    if (found is not null)
-                    {
-                        return found;
-                    }
-                }
-
-                return null;
-            case CodeInterface iface:
-                foreach (CodeNode member in iface.Members)
-                {
-                    List<CodeStatement>? found = FindStatementParentInNode(member, id);
-                    if (found is not null)
-                    {
-                        return found;
-                    }
-                }
-
-                return null;
-            case CodeMethod method:
-                return method.Body is not null ? FindStatementParentInStatements(method.Body.Statements, id) : null;
-            case CodeConstructor ctor:
-                return ctor.Body is not null ? FindStatementParentInStatements(ctor.Body.Statements, id) : null;
-            case CodeFunction function:
-                return function.Body is not null ? FindStatementParentInStatements(function.Body.Statements, id) : null;
-            case CodeProperty property:
-                List<CodeStatement>? getterFound = property.GetterBody is not null
-                    ? FindStatementParentInStatements(property.GetterBody.Statements, id)
-                    : null;
-                return getterFound ?? (property.SetterBody is not null
-                    ? FindStatementParentInStatements(property.SetterBody.Statements, id)
-                    : null);
-            default:
-                return null;
-        }
+            CodeFile file => FindStatementParentInChildren(file.Children, id),
+            CodeNamespace namespaceNode => FindStatementParentInChildren(
+                namespaceNode.Children,
+                id
+            ),
+            CodeClass cls => FindStatementParentInChildren(cls.Members, id),
+            CodeInterface iface => FindStatementParentInChildren(iface.Members, id),
+            CodeMethod method => FindStatementParentInBody(method.Body, id),
+            CodeConstructor ctor => FindStatementParentInBody(ctor.Body, id),
+            CodeFunction function => FindStatementParentInBody(function.Body, id),
+            CodeProperty property => FindStatementParentInBody(property.GetterBody, id)
+                ?? FindStatementParentInBody(property.SetterBody, id),
+            _ => null,
+        };
     }
 
-    private static List<CodeStatement>? FindStatementParentInStatements(List<CodeStatement> statements, string id)
+    private static List<CodeStatement>? FindStatementParentInChildren(
+        IEnumerable<CodeNode> children,
+        string id
+    )
+    {
+        foreach (CodeNode child in children)
+        {
+            List<CodeStatement>? found = FindStatementParentInNode(child, id);
+            if (found is not null)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    private static List<CodeStatement>? FindStatementParentInBody(CodeBody? body, string id)
+    {
+        return body is null ? null : FindStatementParentInStatements(body.Statements, id);
+    }
+
+    private static List<CodeStatement>? FindStatementParentInStatements(
+        List<CodeStatement> statements,
+        string id
+    )
     {
         if (statements.Any(s => s.Id == id))
         {
@@ -216,7 +184,10 @@ public class CodeBuilder<TLanguage>
                     ?? FindInElseIfs(ifStatement.ElseIfs, id)
                     ?? FindStatementParentInStatements(ifStatement.Else, id),
                 CodeForEach forEach => FindStatementParentInStatements(forEach.Body, id),
-                CodeWhile whileStatement => FindStatementParentInStatements(whileStatement.Body, id),
+                CodeWhile whileStatement => FindStatementParentInStatements(
+                    whileStatement.Body,
+                    id
+                ),
                 CodeDoWhile doWhile => FindStatementParentInStatements(doWhile.Body, id),
                 CodeFor forStatement => FindStatementParentInStatements(forStatement.Body, id),
                 CodeRawBlock rawBlock => FindStatementParentInStatements(rawBlock.Body, id),
@@ -224,9 +195,12 @@ public class CodeBuilder<TLanguage>
                 CodeTry tryStatement => FindStatementParentInStatements(tryStatement.Body, id)
                     ?? FindInCatches(tryStatement.Catches, id)
                     ?? FindStatementParentInStatements(tryStatement.Finally, id),
-                CodeNestedFunction nestedFunction => FindStatementParentInStatements(nestedFunction.Body?.Statements ?? [], id),
+                CodeNestedFunction nestedFunction => FindStatementParentInStatements(
+                    nestedFunction.Body?.Statements ?? [],
+                    id
+                ),
                 CodeObjectLiteral literal => FindInObjectMembers(literal.Members, id),
-                _ => null
+                _ => null,
             };
 
             if (found is not null)
@@ -280,13 +254,19 @@ public class CodeBuilder<TLanguage>
         return null;
     }
 
-    private static List<CodeStatement>? FindInObjectMembers(List<CodeObjectMember> members, string id)
+    private static List<CodeStatement>? FindInObjectMembers(
+        List<CodeObjectMember> members,
+        string id
+    )
     {
         foreach (CodeObjectMember member in members)
         {
             if (member.Function is not null)
             {
-                List<CodeStatement>? found = FindStatementParentInStatements(member.Function.Body?.Statements ?? [], id);
+                List<CodeStatement>? found = FindStatementParentInStatements(
+                    member.Function.Body?.Statements ?? [],
+                    id
+                );
                 if (found is not null)
                 {
                     return found;

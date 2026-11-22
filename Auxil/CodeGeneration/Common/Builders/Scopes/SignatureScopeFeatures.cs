@@ -18,9 +18,20 @@ public static class SignatureScopeFeatures
         /// <param name="name">The type parameter name, e.g. "T".</param>
         /// <param name="constraint">An optional constraint (rendered per language).</param>
         /// <param name="defaultValue">An optional default type argument (TypeScript only).</param>
-        public MethodScope<TLanguage, TParent> Generic(string name, string? constraint = null, string? defaultValue = null)
+        public MethodScope<TLanguage, TParent> Generic(
+            string name,
+            string? constraint = null,
+            string? defaultValue = null
+        )
         {
-            scope.MethodNode.Generics.Add(new CodeGenericParameter { Name = name, Constraint = constraint, DefaultValue = defaultValue });
+            scope.MethodNode.Generics.Add(
+                new CodeGenericParameter
+                {
+                    Name = name,
+                    Constraint = constraint,
+                    DefaultValue = defaultValue,
+                }
+            );
             return scope;
         }
     }
@@ -33,9 +44,20 @@ public static class SignatureScopeFeatures
         /// <param name="name">The type parameter name, e.g. "T".</param>
         /// <param name="constraint">An optional constraint (rendered per language).</param>
         /// <param name="defaultValue">An optional default type argument (TypeScript only).</param>
-        public FunctionScope<TLanguage, TParent> Generic(string name, string? constraint = null, string? defaultValue = null)
+        public FunctionScope<TLanguage, TParent> Generic(
+            string name,
+            string? constraint = null,
+            string? defaultValue = null
+        )
         {
-            scope.FunctionNode.Generics.Add(new CodeGenericParameter { Name = name, Constraint = constraint, DefaultValue = defaultValue });
+            scope.FunctionNode.Generics.Add(
+                new CodeGenericParameter
+                {
+                    Name = name,
+                    Constraint = constraint,
+                    DefaultValue = defaultValue,
+                }
+            );
             return scope;
         }
     }

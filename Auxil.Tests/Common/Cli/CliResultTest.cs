@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Common.Cli;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Cli;
 
@@ -15,7 +15,7 @@ public class CliResultTest
             Output = "out",
             ErrorOutput = "err",
             StartTime = new DateTime(2024, 1, 1),
-            ExitTime = new DateTime(2024, 1, 1, 0, 0, 1)
+            ExitTime = new DateTime(2024, 1, 1, 0, 0, 1),
         };
 
         CliResult b = new()
@@ -24,7 +24,7 @@ public class CliResultTest
             Output = "out",
             ErrorOutput = "err",
             StartTime = new DateTime(2024, 1, 1),
-            ExitTime = new DateTime(2024, 1, 1, 0, 0, 1)
+            ExitTime = new DateTime(2024, 1, 1, 0, 0, 1),
         };
 
         a.ShouldBe(b);
@@ -53,7 +53,7 @@ public class CliResultTest
         CliResult result = new()
         {
             StartTime = new DateTime(2024, 1, 1, 0, 0, 0),
-            ExitTime = new DateTime(2024, 1, 1, 0, 0, 5)
+            ExitTime = new DateTime(2024, 1, 1, 0, 0, 5),
         };
 
         result.Duration.ShouldBe(TimeSpan.FromSeconds(5));

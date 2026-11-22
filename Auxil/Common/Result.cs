@@ -8,8 +8,10 @@ public sealed class Result
 {
     /// <summary>Whether the operation succeeded.</summary>
     public bool IsSuccess { get; }
+
     /// <summary>Whether the operation failed.</summary>
     public bool IsFailure => !IsSuccess;
+
     /// <summary>The error message when the operation failed.</summary>
     public string ErrorMessage { get; }
 
@@ -72,7 +74,6 @@ public sealed class Result
         {
             onSuccess();
         }
-
         else
         {
             onError(ErrorMessage);
@@ -97,8 +98,10 @@ public sealed class Result<T>
     /// <summary>Whether the operation succeeded.</summary>
     [MemberNotNullWhen(true, nameof(Value))]
     public bool IsSuccess { get; }
+
     /// <summary>Whether the operation failed.</summary>
     public bool IsFailure => !IsSuccess;
+
     /// <summary>The error message when the operation failed.</summary>
     public string ErrorMessage { get; }
 
@@ -169,7 +172,6 @@ public sealed class Result<T>
         {
             onSuccess(Value);
         }
-
         else
         {
             onError(ErrorMessage);
@@ -183,9 +185,7 @@ public sealed class Result<T>
     {
         ArgumentNullException.ThrowIfNull(mapper);
 
-        return IsSuccess
-            ? Result<TNew>.Ok(mapper(Value))
-            : Result<TNew>.Error(ErrorMessage);
+        return IsSuccess ? Result<TNew>.Ok(mapper(Value)) : Result<TNew>.Error(ErrorMessage);
     }
 
     /// <summary>Chains another result-producing operation on success, short-circuiting on failure.</summary>
@@ -195,9 +195,7 @@ public sealed class Result<T>
     {
         ArgumentNullException.ThrowIfNull(binder);
 
-        return IsSuccess
-            ? binder(Value)
-            : Result<TNew>.Error(ErrorMessage);
+        return IsSuccess ? binder(Value) : Result<TNew>.Error(ErrorMessage);
     }
 
     /// <summary>Deconstructs the result into its state and value.</summary>

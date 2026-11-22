@@ -15,9 +15,12 @@ public abstract class DeclarationScope<TLanguage, TScope, TParent> : ScopeBase<T
     where TScope : DeclarationScope<TLanguage, TScope, TParent>
     where TParent : IScope
 {
-    internal DeclarationScope(CodeBuilder<TLanguage> builder, CodeNode node, TParent parent) : base(builder, node, parent)
-    {
-    }
+    private protected DeclarationScope(
+        CodeBuilder<TLanguage> builder,
+        CodeNode node,
+        TParent parent
+    )
+        : base(builder, node, parent) { }
 
     /// <summary>The declaration this scope configures.</summary>
     protected CodeMember Declaration => (CodeMember)Node;

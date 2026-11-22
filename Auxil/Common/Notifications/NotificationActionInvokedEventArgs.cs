@@ -4,7 +4,10 @@ namespace Auxil.Common.Notifications;
 [PublicAPI]
 public sealed class NotificationActionInvokedEventArgs : EventArgs
 {
-    internal NotificationActionInvokedEventArgs(Notification notification, NotificationAction action)
+    internal NotificationActionInvokedEventArgs(
+        Notification notification,
+        NotificationAction action
+    )
     {
         Notification = notification;
         Action = action;

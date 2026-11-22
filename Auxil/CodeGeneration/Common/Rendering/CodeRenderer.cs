@@ -18,7 +18,11 @@ public static class CodeRenderer
     /// <param name="options">The formatting options.</param>
     /// <param name="warnings">Receives warnings for skipped features.</param>
     /// <returns>The rendered source text.</returns>
-    public static string Render<TLanguage>(CodeFile file, CodeBuilderOptions options, List<string> warnings)
+    public static string Render<TLanguage>(
+        CodeFile file,
+        CodeBuilderOptions options,
+        List<string> warnings
+    )
         where TLanguage : struct, ILanguage
     {
         CodeModelValidator.Validate(file);

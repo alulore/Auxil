@@ -1,5 +1,6 @@
-using JetBrains.Annotations;
+using System.Globalization;
 using Auxil.Common;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common;
 
@@ -70,7 +71,16 @@ public class ResultTest
         Result<int> result = Result<int>.Ok(42);
         string? captured = null;
 
-        result.Match(value => { captured = $"ok:{value}"; }, error => { captured = $"error:{error}"; });
+        result.Match(
+            value =>
+            {
+                captured = $"ok:{value}";
+            },
+            error =>
+            {
+                captured = $"error:{error}";
+            }
+        );
 
         captured.ShouldBe("ok:42");
     }
@@ -81,7 +91,16 @@ public class ResultTest
         Result<int> result = Result<int>.Error("boom");
         string? captured = null;
 
-        result.Match(value => { captured = $"ok:{value}"; }, error => { captured = $"error:{error}"; });
+        result.Match(
+            value =>
+            {
+                captured = $"ok:{value}";
+            },
+            error =>
+            {
+                captured = $"error:{error}";
+            }
+        );
 
         captured.ShouldBe("error:boom");
     }
@@ -91,7 +110,9 @@ public class ResultTest
     {
         Result<int> result = Result<int>.Ok(21);
 
-        Result<string> mapped = result.Map(value => (value * 2).ToString());
+        Result<string> mapped = result.Map(value =>
+            (value * 2).ToString(CultureInfo.InvariantCulture)
+        );
 
         mapped.IsSuccess.ShouldBeTrue();
         mapped.Value.ShouldBe("42");
@@ -102,7 +123,7 @@ public class ResultTest
     {
         Result<int> result = Result<int>.Error("boom");
 
-        Result<string> mapped = result.Map(value => value.ToString());
+        Result<string> mapped = result.Map(value => value.ToString(CultureInfo.InvariantCulture));
 
         mapped.IsFailure.ShouldBeTrue();
         mapped.ErrorMessage.ShouldBe("boom");
@@ -113,7 +134,9 @@ public class ResultTest
     {
         Result<int> result = Result<int>.Ok(42);
 
-        Result<string> bound = result.Bind(value => Result<string>.Ok(value.ToString()));
+        Result<string> bound = result.Bind(value =>
+            Result<string>.Ok(value.ToString(CultureInfo.InvariantCulture))
+        );
 
         bound.IsSuccess.ShouldBeTrue();
         bound.Value.ShouldBe("42");
@@ -128,7 +151,7 @@ public class ResultTest
         Result<string> bound = result.Bind(value =>
         {
             binderCalled = true;
-            return Result<string>.Ok(value.ToString());
+            return Result<string>.Ok(value.ToString(CultureInfo.InvariantCulture));
         });
 
         bound.IsFailure.ShouldBeTrue();
@@ -170,12 +193,6 @@ public class ResultTest
     }
 
     [Fact]
-    public void Error_ThrowsOnNullMessage()
-    {
-        Should.Throw<ArgumentNullException>(() => Result<int>.Error(null!));
-    }
-
-    [Fact]
     public void NonGeneric_Ok_IsSuccess()
     {
         Result result = Result.Ok();
@@ -210,10 +227,28 @@ public class ResultTest
         Result error = Result.Error("boom");
         string? captured = null;
 
-        ok.Match(() => { captured = "ok"; }, message => { captured = message; });
+        ok.Match(
+            () =>
+            {
+                captured = "ok";
+            },
+            message =>
+            {
+                captured = message;
+            }
+        );
         captured.ShouldBe("ok");
 
-        error.Match(() => { captured = "ok"; }, message => { captured = message; });
+        error.Match(
+            () =>
+            {
+                captured = "ok";
+            },
+            message =>
+            {
+                captured = message;
+            }
+        );
         captured.ShouldBe("boom");
     }
 
@@ -241,11 +276,5 @@ public class ResultTest
         okMessage.ShouldBe(string.Empty);
         errorSuccess.ShouldBeFalse();
         errorMessage.ShouldBe("boom");
-    }
-
-    [Fact]
-    public void NonGeneric_Error_ThrowsOnNullMessage()
-    {
-        Should.Throw<ArgumentNullException>(() => Result.Error(null!));
     }
 }

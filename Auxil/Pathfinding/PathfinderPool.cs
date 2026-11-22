@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace Auxil.Pathfinding;
 
 /// <summary>
@@ -16,7 +14,9 @@ public sealed class PathfinderPool : IDisposable
 {
     private readonly IPathWorld _world;
     private readonly PathfinderAlgorithm _algorithm;
-    private readonly ConcurrentBag<Pathfinder> _idle = new();
+    private readonly Lock _gate = new();
+    private readonly Stack<Pathfinder> _idle = [];
+    private readonly List<Pathfinder> _live = [];
     private readonly SemaphoreSlim _slots;
     private bool _disposed;
 
@@ -24,8 +24,12 @@ public sealed class PathfinderPool : IDisposable
     /// <param name="map">The map every query runs on.</param>
     /// <param name="algorithm">The search engine for every query.</param>
     /// <param name="maxConcurrency">Queries allowed at once; 0 or less picks the processor count.</param>
-    public PathfinderPool(PathMap map, PathfinderAlgorithm algorithm = PathfinderAlgorithm.Default, int maxConcurrency = 0)
-        : this(WorldOf(map), algorithm, maxConcurrency)
+    public PathfinderPool(
+        PathMap map,
+        PathfinderAlgorithm algorithm = PathfinderAlgorithm.Default,
+        int maxConcurrency = 0
+    )
+        : this(IPathWorld.Require(map, nameof(map)), algorithm, maxConcurrency)
     {
         Map = map;
     }
@@ -34,8 +38,12 @@ public sealed class PathfinderPool : IDisposable
     /// <param name="stack">The stacked maps every query runs on.</param>
     /// <param name="algorithm">The search engine for every query.</param>
     /// <param name="maxConcurrency">Queries allowed at once; 0 or less picks the processor count.</param>
-    public PathfinderPool(PathMapStack stack, PathfinderAlgorithm algorithm = PathfinderAlgorithm.Default, int maxConcurrency = 0)
-        : this(WorldOf(stack), algorithm, maxConcurrency)
+    public PathfinderPool(
+        PathMapStack stack,
+        PathfinderAlgorithm algorithm = PathfinderAlgorithm.Default,
+        int maxConcurrency = 0
+    )
+        : this(IPathWorld.Require(stack, nameof(stack)), algorithm, maxConcurrency)
     {
         Stack = stack;
     }
@@ -64,58 +72,85 @@ public sealed class PathfinderPool : IDisposable
     /// <param name="start">Where the route begins.</param>
     /// <param name="goal">Where the route ends.</param>
     /// <param name="cancellationToken">Stops a query that is still waiting for a free slot.</param>
-    public async Task<PathResult> FindPathAsync(PathPoint start, PathPoint goal, CancellationToken cancellationToken = default)
+    public async Task<PathResult> FindPathAsync(
+        PathPoint start,
+        PathPoint goal,
+        CancellationToken cancellationToken = default
+    )
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
         await _slots.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        Pathfinder? worker = null;
+        Pathfinder worker = RentWorker();
         try
         {
-            if (!_idle.TryTake(out worker))
-            {
-                worker = CreateWorker();
-            }
-
-            Pathfinder current = worker;
-            return await Task.Run(() => current.FindPath(start, goal), cancellationToken).ConfigureAwait(false);
+            return await Task.Run(() => worker.FindPath(start, goal), cancellationToken)
+                .ConfigureAwait(false);
         }
         finally
         {
-            if (worker is not null)
+            ReturnWorker(worker);
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+        }
+    }
+
+    private Pathfinder RentWorker()
+    {
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (_idle.TryPop(out Pathfinder? worker))
             {
-                if (_disposed)
-                {
-                    worker.Dispose();
-                }
-                else
-                {
-                    _idle.Add(worker);
-                }
+                return worker;
             }
 
-            if (!_disposed)
+            _live.Add(CreateWorker());
+            return _live[^1];
+        }
+    }
+
+    private void ReturnWorker(Pathfinder worker)
+    {
+        lock (_gate)
+        {
+            if (_disposed)
             {
-                _slots.Release();
+                _live.Remove(worker);
+                worker.Dispose();
+                return;
             }
+
+            _idle.Push(worker);
+            _slots.Release();
         }
     }
 
     /// <summary>Disposes the idle workers. Queries already running finish on their own.</summary>
     public void Dispose()
     {
-        if (_disposed)
+        lock (_gate)
         {
-            return;
-        }
+            if (_disposed)
+            {
+                return;
+            }
 
-        _disposed = true;
-        while (_idle.TryTake(out Pathfinder? worker))
-        {
-            worker.Dispose();
-        }
+            _disposed = true;
+            while (_idle.TryPop(out Pathfinder? worker))
+            {
+                _live.Remove(worker);
+                worker.Dispose();
+            }
 
-        _slots.Dispose();
+            _slots.Dispose();
+        }
     }
 
     private Pathfinder CreateWorker()
@@ -123,17 +158,5 @@ public sealed class PathfinderPool : IDisposable
         return _world is PathMapStack stack
             ? new Pathfinder(stack, _algorithm)
             : new Pathfinder((PathMap)_world, _algorithm);
-    }
-
-    private static IPathWorld WorldOf(PathMap map)
-    {
-        ArgumentNullException.ThrowIfNull(map);
-        return map;
-    }
-
-    private static IPathWorld WorldOf(PathMapStack stack)
-    {
-        ArgumentNullException.ThrowIfNull(stack);
-        return stack;
     }
 }

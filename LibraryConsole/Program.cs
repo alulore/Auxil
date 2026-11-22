@@ -6,20 +6,22 @@ using Auxil.CodeGeneration.Common.Model;
 CodeBuilder<GDScript> code = new();
 
 FileScope<GDScript> file = code.File("player.gd");
-file
-    .Doc("The player character.")
+file.Doc("The player character.")
     .ClassName("Player")
     .Extends("Node")
-    .Field("health", CodeTypes.Int, "100").Annotate("export").EndField()
-    .Signal("hit").Parameter("damage", CodeTypes.Int).EndSignal()
+    .Field("health", CodeTypes.Int, "100")
+    .Annotate("export")
+    .EndField()
+    .Signal("hit")
+    .Parameter("damage", CodeTypes.Int)
+    .EndSignal()
     .Method("take_damage")
     .Parameter("amount", CodeTypes.Int)
     .Returns(CodeTypes.Bool)
     .Doc("Reduces health; returns true if still alive.")
-    .Body(b => b
-        .If("health <= 0", i => i.Return("false"))
-        .Line("health -= amount")
-        .Return("health > 0"))
+    .Body(b =>
+        b.If("health <= 0", i => i.Return("false")).Line("health -= amount").Return("health > 0")
+    )
     .EndMethod()
     .EndFile();
 
@@ -36,13 +38,16 @@ csFile
     .Public()
     .Generic("T", "class")
     .Implements("IRepository<T>")
-    .Property("Items", "List<T>").Public().EndProperty()
+    .Property("Items", "List<T>")
+    .Public()
+    .EndProperty()
     .Method("Add")
     .Public()
     .Parameter("item", "T")
-    .Body(b => b
-        .Line("_items.Add(item);")
-        .If("_items.Count > 100", i => i.Throw("new InvalidOperationException(\"too many\")")))
+    .Body(b =>
+        b.Line("_items.Add(item);")
+            .If("_items.Count > 100", i => i.Throw("new InvalidOperationException(\"too many\")"))
+    )
     .EndMethod()
     .EndClass()
     .EndNamespace()

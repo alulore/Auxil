@@ -14,14 +14,17 @@ internal sealed class FlowField
 {
     private const byte NoFlow = 255;
 
-    private Grid _grid = null!;
-    private int _width, _layerSize, _layerCount, _nodeCount;
+    private Grid _grid = Grid.Empty;
+    private int _width,
+        _layerSize,
+        _layerCount,
+        _nodeCount;
 
-    private int[] _integrationCost = null!;
-    private int[] _integrationGeneration = null!;
-    private int[] _closedGeneration = null!;
-    private byte[] _flowDirection = null!;
-    private int[] _flowGeneration = null!;
+    private int[] _integrationCost = [];
+    private int[] _integrationGeneration = [];
+    private int[] _closedGeneration = [];
+    private byte[] _flowDirection = [];
+    private int[] _flowGeneration = [];
     private int _generation;
     private DialBucketsLazy _queue;
 
@@ -44,15 +47,14 @@ internal sealed class FlowField
 
     public void Release()
     {
-        _integrationCost = null!;
-        _integrationGeneration = null!;
-        _closedGeneration = null!;
-        _flowDirection = null!;
-        _flowGeneration = null!;
+        _integrationCost = [];
+        _integrationGeneration = [];
+        _closedGeneration = [];
+        _flowDirection = [];
+        _flowGeneration = [];
     }
 
-    /// <summary>Builds the integration costs and flow directions toward <paramref name="goal"/>.</summary>
-    public void ComputeField(int goal)
+    private int NextGeneration()
     {
         int generation = ++_generation;
         if (generation == int.MaxValue)
@@ -62,6 +64,14 @@ internal sealed class FlowField
             Array.Clear(_flowGeneration);
             generation = _generation = 1;
         }
+
+        return generation;
+    }
+
+    /// <summary>Builds the integration costs and flow directions toward <paramref name="goal"/>.</summary>
+    public void ComputeField(int goal)
+    {
+        int generation = NextGeneration();
 
         _integrationCost[goal] = 0;
         _integrationGeneration[goal] = generation;
@@ -80,7 +90,10 @@ internal sealed class FlowField
         while (_queue.Count > 0)
         {
             int current = _queue.Pop(out int currentCost);
-            if (closedGeneration[current] == generation) continue;
+            if (closedGeneration[current] == generation)
+            {
+                continue;
+            }
             closedGeneration[current] = generation;
 
             int x = current % _width;
@@ -89,11 +102,20 @@ internal sealed class FlowField
 
             for (int direction = 0; direction < directionCount; direction++)
             {
-                if (!_grid.TryStep(current, x, y, z, direction, out int neighborId)) continue;
-                if (closedGeneration[neighborId] == generation) continue;
+                if (!_grid.TryStep(current, x, y, z, direction, out int neighborId))
+                {
+                    continue;
+                }
+                if (closedGeneration[neighborId] == generation)
+                {
+                    continue;
+                }
 
                 int newCost = currentCost + Grid.MoveCost[direction];
-                if (integrationGeneration[neighborId] != generation || newCost < integrationCost[neighborId])
+                if (
+                    integrationGeneration[neighborId] != generation
+                    || newCost < integrationCost[neighborId]
+                )
                 {
                     integrationCost[neighborId] = newCost;
                     integrationGeneration[neighborId] = generation;
@@ -107,7 +129,8 @@ internal sealed class FlowField
 
     /// <summary>Distance from the goal for a cell in the current field, or -1 when unreachable.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int DistanceAt(int cell) => _integrationGeneration[cell] == _generation ? _integrationCost[cell] : -1;
+    public int DistanceAt(int cell) =>
+        _integrationGeneration[cell] == _generation ? _integrationCost[cell] : -1;
 
     /// <summary>
     /// Returns the next cell on the way to the goal for an agent standing on <paramref name="cell"/>,

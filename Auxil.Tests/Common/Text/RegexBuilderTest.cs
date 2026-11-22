@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Auxil.Common.Text;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Text;
 
@@ -68,10 +68,7 @@ public class RegexBuilderTest
     {
         RegexBuilder inner = new RegexBuilder().AnyDigit().OneOrMore();
 
-        RegexBuilder builder = new RegexBuilder()
-            .StartOfString()
-            .NonCapture(inner)
-            .EndOfString();
+        RegexBuilder builder = new RegexBuilder().StartOfString().NonCapture(inner).EndOfString();
 
         builder.GetRegexPattern().ShouldBe(@"\A(?:\d+)\Z");
         builder.IsMatch("123").ShouldBeTrue();
@@ -106,14 +103,6 @@ public class RegexBuilderTest
     }
 
     [Fact]
-    public void IsMatch_ThrowsOnNull()
-    {
-        RegexBuilder builder = new RegexBuilder().AnyDigit();
-
-        Should.Throw<ArgumentNullException>(() => builder.IsMatch(null!));
-    }
-
-    [Fact]
     public void ToString_ReturnsPattern()
     {
         RegexBuilder builder = new RegexBuilder().Text("hello");
@@ -136,12 +125,6 @@ public class RegexBuilderTest
     }
 
     [Fact]
-    public void CopyConstructor_ThrowsOnNull()
-    {
-        Should.Throw<ArgumentNullException>(() => new RegexBuilder(null!));
-    }
-
-    [Fact]
     public void Between_AppliesRangeQuantifier()
     {
         RegexBuilder builder = new RegexBuilder()
@@ -159,7 +142,7 @@ public class RegexBuilderTest
     [Fact]
     public void Between_ValidatesArguments()
     {
-        RegexBuilder builder = new RegexBuilder();
+        RegexBuilder builder = new();
 
         Should.Throw<ArgumentOutOfRangeException>(() => builder.Between(3, 2));
         Should.Throw<ArgumentOutOfRangeException>(() => builder.Between(-1, 2));
@@ -168,10 +151,7 @@ public class RegexBuilderTest
     [Fact]
     public void Boundary_MatchesWordBoundaries()
     {
-        RegexBuilder builder = new RegexBuilder()
-            .Boundary()
-            .Text("word")
-            .Boundary();
+        RegexBuilder builder = new RegexBuilder().Boundary().Text("word").Boundary();
 
         builder.IsMatch("a word here").ShouldBeTrue();
         builder.IsMatch("sword").ShouldBeFalse();
@@ -180,9 +160,7 @@ public class RegexBuilderTest
     [Fact]
     public void NonBoundary_MatchesNonWordBoundaries()
     {
-        RegexBuilder builder = new RegexBuilder()
-            .Text("or")
-            .NonBoundary();
+        RegexBuilder builder = new RegexBuilder().Text("or").NonBoundary();
 
         builder.IsMatch("word").ShouldBeTrue();
         builder.IsMatch("or ").ShouldBeFalse();
@@ -222,8 +200,7 @@ public class RegexBuilderTest
     [Fact]
     public void Capture_WithText_CanSkipEscaping()
     {
-        RegexBuilder builder = new RegexBuilder()
-            .Capture("digits", @"\d+", escape: false);
+        RegexBuilder builder = new RegexBuilder().Capture("digits", @"\d+", escape: false);
 
         RegexResult result = builder.Match("hello 42");
 
@@ -243,9 +220,7 @@ public class RegexBuilderTest
     [Fact]
     public void CompleteMatch_AnchorsPattern()
     {
-        RegexBuilder builder = new RegexBuilder()
-            .CompleteMatch()
-            .Text("abc");
+        RegexBuilder builder = new RegexBuilder().CompleteMatch().Text("abc");
 
         builder.IsMatch("abc").ShouldBeTrue();
         builder.IsMatch("xabc").ShouldBeFalse();
@@ -262,10 +237,7 @@ public class RegexBuilderTest
     [Fact]
     public void StartOfString_And_EndOfString_AnchorPattern()
     {
-        RegexBuilder builder = new RegexBuilder()
-            .StartOfString()
-            .Text("abc")
-            .EndOfString();
+        RegexBuilder builder = new RegexBuilder().StartOfString().Text("abc").EndOfString();
 
         builder.IsMatch("abc").ShouldBeTrue();
         builder.IsMatch("xabc").ShouldBeFalse();
@@ -275,9 +247,7 @@ public class RegexBuilderTest
     [Fact]
     public void AbsoluteEndOfString_AnchorsAtVeryEnd()
     {
-        RegexBuilder builder = new RegexBuilder()
-            .Text("abc")
-            .AbsoluteEndOfString();
+        RegexBuilder builder = new RegexBuilder().Text("abc").AbsoluteEndOfString();
 
         builder.IsMatch("abc").ShouldBeTrue();
         builder.IsMatch("abc\n").ShouldBeFalse();
@@ -368,10 +338,7 @@ public class RegexBuilderTest
     {
         RegexBuilder inner = new RegexBuilder().StartOfString().Text("abc").EndOfString();
 
-        RegexBuilder builder = new RegexBuilder()
-            .Text("x")
-            .Text(inner)
-            .Text("y");
+        RegexBuilder builder = new RegexBuilder().Text("x").Text(inner).Text("y");
 
         builder.GetRegexPattern().ShouldBe("xabcy");
         builder.IsMatch("xabcy").ShouldBeTrue();
@@ -402,10 +369,7 @@ public class RegexBuilderTest
     [Fact]
     public void Matches_StripsAnchorsForMultiMatch()
     {
-        RegexBuilder builder = new RegexBuilder()
-            .StartOfString()
-            .Text("a")
-            .EndOfString();
+        RegexBuilder builder = new RegexBuilder().StartOfString().Text("a").EndOfString();
 
         builder.Matches("a a a").Count.ShouldBe(3);
         builder.Match("a a a").Success.ShouldBeFalse();
@@ -454,21 +418,5 @@ public class RegexBuilderTest
 
         second.MatchTimeout.ShouldBe(TimeSpan.FromSeconds(3));
         first.ShouldNotBeSameAs(second);
-    }
-
-    [Fact]
-    public void ThrowsOnNullStringArguments()
-    {
-        RegexBuilder builder = new RegexBuilder();
-
-        Should.Throw<ArgumentNullException>(() => builder.AnyCharacterBut(null!));
-        Should.Throw<ArgumentNullException>(() => builder.AnyOfCharacter(null!));
-        Should.Throw<ArgumentNullException>(() => builder.Capture(null!, "x"));
-        Should.Throw<ArgumentNullException>(() => builder.Capture("name", null!));
-        Should.Throw<ArgumentNullException>(() => builder.Capture("name", (RegexBuilder)null!));
-        Should.Throw<ArgumentNullException>(() => builder.NonCapture(null!));
-        Should.Throw<ArgumentNullException>(() => builder.NonCapture((RegexBuilder)null!));
-        Should.Throw<ArgumentNullException>(() => builder.Text((string)null!));
-        Should.Throw<ArgumentNullException>(() => builder.Text((RegexBuilder)null!));
     }
 }

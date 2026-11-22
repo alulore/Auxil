@@ -11,5 +11,5 @@ public enum BraceStyle
     Allman,
 
     /// <summary>Closing brace shares the line: } else {</summary>
-    KAndR
+    KAndR,
 }

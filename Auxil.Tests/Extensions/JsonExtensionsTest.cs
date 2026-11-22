@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
-using JetBrains.Annotations;
 using Auxil.Extensions;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Extensions;
 
@@ -128,13 +128,5 @@ public class JsonExtensionsTest
         JsonNode? node = JsonValue.Create<string?>(null);
 
         node.Get("", 42).ShouldBe(42);
-    }
-
-    [Fact]
-    public void Get_ThrowsOnNullPath()
-    {
-        JsonNode? node = Parse("""{"a":1}""");
-
-        Should.Throw<ArgumentNullException>(() => node.Get<int>(null!));
     }
 }

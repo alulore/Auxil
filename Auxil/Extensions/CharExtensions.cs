@@ -34,6 +34,6 @@ public static class CharExtensions
     /// <summary>Returns a string containing the character repeated the given number of times.</summary>
     /// <param name="c">The character to repeat.</param>
     /// <param name="count">The number of repetitions; values below one produce an empty string.</param>
-    public static string Repeat(this char c, int count)
-        => count <= 0 ? string.Empty : new string(c, count);
+    public static string Repeat(this char c, int count) =>
+        count <= 0 ? string.Empty : new string(c, count);
 }

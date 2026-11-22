@@ -1,5 +1,5 @@
-using JetBrains.Annotations;
 using Auxil.Common.Text;
+using JetBrains.Annotations;
 
 namespace Auxil.Tests.Common.Text;
 
@@ -16,7 +16,7 @@ public class RegexResultTest
             InputText = "text",
             StartIndex = 1,
             EndIndex = 2,
-            Groups = new Dictionary<string, string> { ["0"] = "x" }
+            Groups = new Dictionary<string, string> { ["0"] = "x" },
         };
 
         RegexResult b = new()
@@ -26,7 +26,7 @@ public class RegexResultTest
             InputText = "text",
             StartIndex = 1,
             EndIndex = 2,
-            Groups = new Dictionary<string, string> { ["0"] = "x" }
+            Groups = new Dictionary<string, string> { ["0"] = "x" },
         };
 
         a.ShouldBe(b);
@@ -47,7 +47,7 @@ public class RegexResultTest
     {
         RegexResult result = new() { Success = true };
 
-        result.Equals(null).ShouldBeFalse();
+        result.ShouldNotBe(null);
     }
 
     [Fact]
@@ -63,12 +63,12 @@ public class RegexResultTest
     {
         RegexResult a = new()
         {
-            Groups = new Dictionary<string, string> { ["0"] = "x", ["a"] = "y" }
+            Groups = new Dictionary<string, string> { ["0"] = "x", ["a"] = "y" },
         };
 
         RegexResult b = new()
         {
-            Groups = new Dictionary<string, string> { ["0"] = "x", ["b"] = "z" }
+            Groups = new Dictionary<string, string> { ["0"] = "x", ["b"] = "z" },
         };
 
         a.Equals(b).ShouldBeFalse();
@@ -78,15 +78,9 @@ public class RegexResultTest
     [Fact]
     public void Equals_DifferentGroupValuesAreNotEqual()
     {
-        RegexResult a = new()
-        {
-            Groups = new Dictionary<string, string> { ["0"] = "x" }
-        };
+        RegexResult a = new() { Groups = new Dictionary<string, string> { ["0"] = "x" } };
 
-        RegexResult b = new()
-        {
-            Groups = new Dictionary<string, string> { ["0"] = "y" }
-        };
+        RegexResult b = new() { Groups = new Dictionary<string, string> { ["0"] = "y" } };
 
         a.Equals(b).ShouldBeFalse();
     }
@@ -96,7 +90,7 @@ public class RegexResultTest
     {
         RegexResult result = new()
         {
-            Groups = new Dictionary<string, string> { ["0"] = "matched", ["word"] = "matched" }
+            Groups = new Dictionary<string, string> { ["0"] = "matched", ["word"] = "matched" },
         };
 
         result.GetCompleteMatch().ShouldBe("matched");
@@ -115,7 +109,7 @@ public class RegexResultTest
     {
         RegexResult result = new()
         {
-            Groups = new Dictionary<string, string> { ["word"] = "hello" }
+            Groups = new Dictionary<string, string> { ["word"] = "hello" },
         };
 
         result.GetString("word").ShouldBe("hello");
@@ -139,7 +133,7 @@ public class RegexResultTest
             InputText = "hello",
             StartIndex = 0,
             EndIndex = 5,
-            Groups = new Dictionary<string, string> { ["0"] = "hello" }
+            Groups = new Dictionary<string, string> { ["0"] = "hello" },
         };
 
         string output = result.ToString();
