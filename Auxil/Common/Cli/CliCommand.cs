@@ -55,9 +55,8 @@ public class CliCommand
         StringBuilder errorsBuilder = new();
         using Process process = CreateProcess(outputBuilder, errorsBuilder);
 
+        DateTime startTime = DateTime.Now;
         process.Start();
-
-        DateTime startTime = process.StartTime;
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         process.BeginOutputReadLine();
@@ -69,7 +68,7 @@ public class CliCommand
     }
 
     /// <summary>Executes the process and returns the captured result.</summary>
-    /// <remarks>On Unix, StartTime and ExitTime read /proc/&lt;pid&gt;/stat, which is gone once the process is reaped, so the start time is captured while the process is alive and the exit time is derived from a stopwatch. The process object is settled with a synchronous wait afterwards because WaitForExitAsync releases the handle on Unix, which makes ExitCode throw, and the wait also drains the async output handlers.</remarks>
+    /// <remarks>On Unix, StartTime and ExitTime read /proc/&lt;pid&gt;/stat, which is gone once the process is reaped, so the start time is taken from the clock just before the process starts and the exit time is derived from a stopwatch. The process object is settled with a synchronous wait afterwards because WaitForExitAsync releases the handle on Unix, which makes ExitCode throw, and the wait also drains the async output handlers.</remarks>
     /// <param name="timeout">The maximum time to wait; when exceeded the process is killed and a <see cref="TimeoutException"/> is thrown.</param>
     /// <param name="cancellationToken">Cancels the wait for the process.</param>
     public async Task<CliResult> ExecuteAsync(
@@ -83,9 +82,8 @@ public class CliCommand
 
         try
         {
+            DateTime startTime = DateTime.Now;
             process.Start();
-
-            DateTime startTime = process.StartTime;
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             process.BeginOutputReadLine();
